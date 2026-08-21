@@ -14,6 +14,8 @@ import { LESSON_ORDER } from "./types.ts";
 
 export type GoalCheck = (snapshot: Snapshot, state: GitState) => boolean;
 
+export type ThenFlags = { ref?: string; trees?: boolean };
+
 export class LessonTalk {
   #id: LessonId;
   #title = "";
@@ -84,25 +86,64 @@ export class LessonTalk {
     return this;
   }
 
-  then(
-    caption: string,
-    opts?: { ref?: string; trees?: boolean },
-  ): this {
+  /**
+   * Flag string form: "trees" | "main" | "main trees" | "origin/main".
+   * Token "trees" pulses the three-tree cards; any other token is highlightRef.
+   */
+  then(caption: string, opts?: ThenFlags | string): this {
     const beat: VizBeat = { caption };
-    if (opts?.ref) beat.highlightRef = opts.ref;
-    if (opts?.trees) beat.pulseTrees = true;
+    if (typeof opts === "string") {
+      for (const tok of opts.split(/\s+/).filter(Boolean)) {
+        if (tok === "trees") beat.pulseTrees = true;
+        else beat.highlightRef = tok;
+      }
+    } else {
+      if (opts?.ref) beat.highlightRef = opts.ref;
+      if (opts?.trees) beat.pulseTrees = true;
+    }
     this.#beats.push(beat);
     return this;
   }
 
+  ask(
+    prompt: string,
+    choices: string[],
+    answer: number,
+    explain: string,
+  ): this;
   ask(
     id: string,
     prompt: string,
     choices: string[],
     answer: number,
     explain: string,
+  ): this;
+  ask(
+    idOrPrompt: string,
+    promptOrChoices: string | string[],
+    choicesOrAnswer: string[] | number,
+    answerOrExplain: number | string,
+    explain?: string,
   ): this {
-    this.#quiz.push({ id, prompt, choices, answer, explain });
+    let id: string;
+    let prompt: string;
+    let choices: string[];
+    let answer: number;
+    let expl: string;
+    if (Array.isArray(promptOrChoices)) {
+      prompt = idOrPrompt;
+      choices = promptOrChoices;
+      answer = choicesOrAnswer as number;
+      expl = answerOrExplain as string;
+      id = `${this.#id}-q${this.#quiz.length + 1}`;
+    } else {
+      id = idOrPrompt;
+      prompt = promptOrChoices;
+      choices = choicesOrAnswer as string[];
+      answer = answerOrExplain as number;
+      expl = explain as string;
+    }
+    this.#quiz.push({ id, prompt, choices, answer, explain: expl });
     return this;
   }
 
@@ -136,7 +177,9 @@ export class LessonTalk {
   }
 }
 
-/** Start a lesson sentence: speak("tags").after("model").title(...) */
-export function speak(id: LessonId): LessonTalk {
-  return new LessonTalk(id);
+/** Start a lesson sentence: speak("tags", "Tags: …").after("model") */
+export function speak(id: LessonId, title?: string): LessonTalk {
+  const talk = new LessonTalk(id);
+  if (title !== undefined) talk.title(title);
+  return talk;
 }
