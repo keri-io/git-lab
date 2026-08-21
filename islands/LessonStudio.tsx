@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import type { QuizItem } from "@/lib/curriculum/types.ts";
 import { getLesson, lessons } from "@/lib/curriculum/mod.ts";
 import { GitVM } from "@/lib/git-vm/mod.ts";
-import { seededLocalFromOrigin } from "@/lib/git-vm/fixtures.ts";
 import type {
   CommandResult,
   GitEvent,
@@ -21,7 +19,6 @@ import {
   markGoalPassed,
   markQuizPassed,
 } from "@/lib/progress.ts";
-import type { Lesson } from "@/lib/curriculum/types.ts";
 import { LessonIllustration } from "@/lib/studio/illustrations/mod.tsx";
 import { MarkdownView } from "@/lib/studio/markdown.tsx";
 import { QuizPanel } from "@/lib/studio/quiz_panel.tsx";
@@ -29,22 +26,9 @@ import { VizCaption } from "@/lib/studio/viz_caption.tsx";
 import {
   getLessonViz,
   vizAfterCommand,
-  vizBeat,
   type VizBeat,
+  vizBeat,
 } from "@/lib/curriculum/viz.ts";
-
-export interface LessonStudioProps {
-  lessonId: string;
-  id: string;
-  title: string;
-  narrative: string;
-  objectives: string[];
-  allowedCommands: string[];
-  demoScript: string[];
-  goalHint: string;
-  quiz: QuizItem[];
-  articleUrl?: string;
-}
 
 const controlClass =
   "px-4 py-2 rounded-full text-sm font-medium touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--lg-bg)]";
@@ -65,32 +49,8 @@ function isCommandAllowed(line: string, allowed: string[]): boolean {
   );
 }
 
-function resolveLesson(props: LessonStudioProps): Lesson {
-  try {
-    const lesson = getLesson(props.lessonId);
-    if (lesson) return lesson;
-  } catch {
-    // curriculum module missing or threw — seeded local fixture
-  }
-  return {
-    id: props.lessonId,
-    order: 0,
-    title: props.title,
-    unlocksAfter: [],
-    articleUrl: props.articleUrl,
-    narrative: props.narrative,
-    objectives: props.objectives,
-    allowedCommands: props.allowedCommands,
-    demoScript: props.demoScript,
-    startState: seededLocalFromOrigin(),
-    goalHint: props.goalHint,
-    quiz: props.quiz,
-    goalCheck: () => false,
-  };
-}
-
-export default function LessonStudio(props: LessonStudioProps) {
-  const lesson = resolveLesson(props);
+export default function LessonStudio({ lessonId }: { lessonId: string }) {
+  const lesson = getLesson(lessonId)!;
   const graphRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<HTMLDivElement>(null);
   const vmRef = useRef<GitVM | null>(null);
@@ -112,9 +72,7 @@ export default function LessonStudio(props: LessonStudioProps) {
   const [vizStep, setVizStep] = useState<number | null>(null);
   const [vizHint, setVizHint] = useState<VizBeat | null>(null);
 
-  const nextLesson = lessons.find((l) =>
-    l.unlocksAfter.includes(props.lessonId)
-  );
+  const nextLesson = lessons.find((l) => l.unlocksAfter.includes(lessonId));
   const lessonDone = goalOk && quizOk;
 
   const graphGen = useRef(0);
@@ -145,7 +103,7 @@ export default function LessonStudio(props: LessonStudioProps) {
   const checkGoal = (result: CommandResult) => {
     const vm = vmRef.current;
     if (vm && lessonRef.current.goalCheck(result.snapshot, vm.state)) {
-      markGoalPassed(props.lessonId);
+      markGoalPassed(lessonId);
       setGoalOk(true);
       setShowQuiz(true);
       setGoalMsg("Goal met. Answer the quiz to unlock the next lesson.");
@@ -156,7 +114,7 @@ export default function LessonStudio(props: LessonStudioProps) {
     const host = hostRef.current;
     if (result.stdout) host?.writeStdout(result.stdout);
     if (result.stderr) host?.writeStderr(result.stderr);
-    const hint = vizAfterCommand(props.lessonId, line) ?? null;
+    const hint = vizAfterCommand(lessonId, line) ?? null;
     setVizHint(hint);
     setVizStep(null);
     paint(result.snapshot, result.events, hint);
@@ -188,12 +146,7 @@ export default function LessonStudio(props: LessonStudioProps) {
   }, []);
 
   useEffect(() => {
-    lessonRef.current = resolveLesson(props);
-    startRef.current = lessonRef.current.startState;
-  }, [props.lessonId]);
-
-  useEffect(() => {
-    const full = resolveLesson(props);
+    const full = lesson;
     lessonRef.current = full;
     startRef.current = full.startState;
     const vm = new GitVM(full.startState);
@@ -245,7 +198,7 @@ export default function LessonStudio(props: LessonStudioProps) {
       hostRef.current = null;
       vmRef.current = null;
     };
-  }, [props.lessonId]);
+  }, [lessonId]);
 
   const playDemo = async () => {
     const vm = vmRef.current;
@@ -263,7 +216,7 @@ export default function LessonStudio(props: LessonStudioProps) {
         const result = vm.exec(line);
         if (result.stdout) host.writeStdout(result.stdout);
         if (result.stderr) host.writeStderr(result.stderr);
-        const beat = vizBeat(props.lessonId, i) ?? null;
+        const beat = vizBeat(lessonId, i) ?? null;
         setVizStep(i);
         setVizHint(beat);
         paint(result.snapshot, result.events, beat);
@@ -306,9 +259,9 @@ export default function LessonStudio(props: LessonStudioProps) {
       setQuizMsg("Not quite — check the explanations and try again.");
       return;
     }
-    const progress = markQuizPassed(props.lessonId);
+    const progress = markQuizPassed(lessonId);
     setQuizOk(true);
-    if (isLessonComplete(props.lessonId, progress)) {
+    if (isLessonComplete(lessonId, progress)) {
       setQuizMsg("All correct. Progress saved.");
     } else {
       setQuizMsg(
@@ -334,7 +287,7 @@ export default function LessonStudio(props: LessonStudioProps) {
         </a>
         <span class="text-[var(--lg-muted)]">/</span>
         <h1 class="text-lg font-semibold flex-1 min-w-[12rem] text-pretty break-words">
-          {props.title}
+          {lesson.title}
         </h1>
         <div class="flex flex-wrap gap-2 min-w-0">
           <button
@@ -380,10 +333,10 @@ export default function LessonStudio(props: LessonStudioProps) {
         class="flex-1 overflow-y-auto min-h-0 scroll-mt-4 p-6 lg:p-8 flex flex-col gap-4"
       >
         <VizCaption
-          intro={getLessonViz(props.lessonId)?.intro ?? null}
+          intro={getLessonViz(lessonId)?.intro ?? null}
           caption={vizHint?.caption ?? null}
           step={vizStep}
-          total={props.demoScript.length}
+          total={lesson.demoScript.length}
         />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           <div
@@ -425,22 +378,22 @@ export default function LessonStudio(props: LessonStudioProps) {
         <IndexStages snapshot={snapshot} events={events} />
         <ThreeTrees snapshot={snapshot} pulse={!!vizHint?.pulseTrees} />
         <div class="lg-card p-5 space-y-4">
-          <h2 class="text-xl font-semibold text-pretty">{props.title}</h2>
-          <LessonIllustration lessonId={props.lessonId} />
-          <MarkdownView source={props.narrative} />
+          <h2 class="text-xl font-semibold text-pretty">{lesson.title}</h2>
+          <LessonIllustration lessonId={lessonId} />
+          <MarkdownView source={lesson.narrative} />
           <section>
             <h3 class="text-xs uppercase tracking-wide text-[var(--lg-muted)] mb-2">
               Objectives
             </h3>
             <ul class="list-disc pl-5 text-sm space-y-1 text-[var(--lg-text)]">
-              {props.objectives.map((o) => <li key={o}>{o}</li>)}
+              {lesson.objectives.map((o) => <li key={o}>{o}</li>)}
             </ul>
           </section>
-          {props.articleUrl
+          {lesson.articleUrl
             ? (
               <p class="text-sm">
                 <a
-                  href={props.articleUrl}
+                  href={lesson.articleUrl}
                   class="text-[var(--lg-accent)] hover:underline rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lg-accent)]"
                   target="_blank"
                   rel="noreferrer"
@@ -450,11 +403,11 @@ export default function LessonStudio(props: LessonStudioProps) {
               </p>
             )
             : null}
-          <p class="text-xs text-[var(--lg-muted)]">{props.goalHint}</p>
-          {props.allowedCommands.length > 0
+          <p class="text-xs text-[var(--lg-muted)]">{lesson.goalHint}</p>
+          {lesson.allowedCommands.length > 0
             ? (
               <p class="text-xs text-[var(--lg-muted)]">
-                Allowed: {props.allowedCommands.map((c) => (
+                Allowed: {lesson.allowedCommands.map((c) => (
                   <code
                     key={c}
                     class="mr-1 px-1.5 py-0.5 rounded-md border border-[var(--lg-border)] bg-[var(--lg-bg)] text-[var(--lg-text)]"
@@ -486,7 +439,7 @@ export default function LessonStudio(props: LessonStudioProps) {
         {showQuiz
           ? (
             <QuizPanel
-              quiz={props.quiz}
+              quiz={lesson.quiz}
               answers={answers}
               onChange={(id, idx) =>
                 setAnswers((prev) => ({ ...prev, [id]: idx }))}
