@@ -23,6 +23,7 @@ import {
   isAncestor,
   lookupRef,
   mergeBase,
+  type MergeResult,
   moveHead,
   nameForCommit,
   prettyObject,
@@ -55,34 +56,39 @@ function fail(stderr: string): CmdResult {
   return { ok: false, stdout: "", stderr: msg };
 }
 
-const KNOWN = [
-  "init",
-  "clone",
-  "status",
-  "log",
-  "switch",
-  "checkout",
-  "branch",
-  "add",
-  "commit",
-  "reset",
-  "reflog",
-  "remote",
-  "fetch",
-  "pull",
-  "merge",
-  "rebase",
-  "cherry-pick",
-  "stash",
-  "worktree",
-  "revert",
-  "cat-file",
-  "ls-files",
-  "tag",
-  "diff",
-  "gc",
-  "config",
-];
+type PorcelainFn = (state: GitState, args: string[]) => CmdResult;
+
+/** Function declarations below are hoisted; this table is the command list. */
+const HANDLERS: Record<string, PorcelainFn> = {
+  init: cmdInit,
+  clone: cmdClone,
+  status: cmdStatus,
+  log: cmdLog,
+  switch: cmdSwitch,
+  checkout: cmdCheckout,
+  branch: cmdBranch,
+  add: cmdAdd,
+  commit: cmdCommit,
+  reset: cmdReset,
+  reflog: cmdReflog,
+  remote: cmdRemote,
+  fetch: cmdFetch,
+  pull: cmdPull,
+  merge: cmdMerge,
+  rebase: cmdRebase,
+  "cherry-pick": cmdCherryPick,
+  stash: cmdStash,
+  worktree: cmdWorktree,
+  revert: cmdRevert,
+  "cat-file": cmdCatFile,
+  "ls-files": cmdLsFiles,
+  tag: cmdTag,
+  diff: cmdDiff,
+  gc: cmdGc,
+  config: cmdConfig,
+};
+
+const KNOWN = Object.keys(HANDLERS);
 
 export function dispatchGit(state: GitState, argv: string[]): CmdResult {
   if (argv.length === 0) return ok();
@@ -97,64 +103,13 @@ export function dispatchGit(state: GitState, argv: string[]): CmdResult {
   }
   const cmd = argv[1];
   const args = argv.slice(2);
-  switch (cmd) {
-    case "init":
-      return cmdInit(state, args);
-    case "clone":
-      return cmdClone(state, args);
-    case "status":
-      return cmdStatus(state);
-    case "log":
-      return cmdLog(state, args);
-    case "switch":
-      return cmdSwitch(state, args);
-    case "checkout":
-      return cmdCheckout(state, args);
-    case "branch":
-      return cmdBranch(state, args);
-    case "add":
-      return cmdAdd(state, args);
-    case "commit":
-      return cmdCommit(state, args);
-    case "reset":
-      return cmdReset(state, args);
-    case "reflog":
-      return cmdReflog(state, args);
-    case "remote":
-      return cmdRemote(state, args);
-    case "fetch":
-      return cmdFetch(state, args);
-    case "pull":
-      return cmdPull(state, args);
-    case "merge":
-      return cmdMerge(state, args);
-    case "rebase":
-      return cmdRebase(state, args);
-    case "cherry-pick":
-      return cmdCherryPick(state, args);
-    case "stash":
-      return cmdStash(state, args);
-    case "worktree":
-      return cmdWorktree(state, args);
-    case "revert":
-      return cmdRevert(state, args);
-    case "cat-file":
-      return cmdCatFile(state, args);
-    case "ls-files":
-      return cmdLsFiles(state, args);
-    case "tag":
-      return cmdTag(state, args);
-    case "diff":
-      return cmdDiff(state, args);
-    case "gc":
-      return cmdGc(state, args);
-    case "config":
-      return cmdConfig(state, args);
-    default:
-      return fail(
-        `git: '${cmd}' is not a git-lab command. Known: ${KNOWN.join(", ")}.`,
-      );
+  const handler = HANDLERS[cmd];
+  if (!handler) {
+    return fail(
+      `git: '${cmd}' is not a git-lab command. Known: ${KNOWN.join(", ")}.`,
+    );
   }
+  return handler(state, args);
 }
 
 function cmdInit(state: GitState, args: string[]): CmdResult {
@@ -748,16 +703,9 @@ function cmdCommit(state: GitState, args: string[]): CmdResult {
 
 function cmdReset(state: GitState, args: string[]): CmdResult {
   if (takeFlag(args, "--merge")) {
-    const head = resolveHead(state);
-    if (!state.refs["MERGE_HEAD"] && !state.conflicted && !head) {
+    if (!clearInProgressMerge(state)) {
       return fail("fatal: There is no merge to abort");
     }
-    if (!state.refs["MERGE_HEAD"] && !state.conflicted) {
-      return fail("fatal: There is no merge to abort");
-    }
-    if (head) checkoutCommit(state, head);
-    delete state.refs["MERGE_HEAD"];
-    state.conflicted = false;
     return ok();
   }
   let mode: "soft" | "mixed" | "hard" = "mixed";
@@ -852,14 +800,19 @@ function cmdMerge(state: GitState, args: string[]): CmdResult {
 }
 
 function mergeAbort(state: GitState): CmdResult {
-  if (!state.refs["MERGE_HEAD"] && !state.conflicted) {
+  if (!clearInProgressMerge(state)) {
     return fail("fatal: There is no merge to abort");
   }
+  return ok("Merge aborted\n");
+}
+
+function clearInProgressMerge(state: GitState): boolean {
+  if (!state.refs["MERGE_HEAD"] && !state.conflicted) return false;
   const head = resolveHead(state);
   if (head) checkoutCommit(state, head);
   delete state.refs["MERGE_HEAD"];
   state.conflicted = false;
-  return ok("Merge aborted\n");
+  return true;
 }
 
 function mergeCommitish(
@@ -980,27 +933,56 @@ function parseTodoLine(
   return null;
 }
 
-function rebaseInteractive(
-  state: GitState,
-  onto: string,
-  ontoName: string,
-): CmdResult {
+function rebaseHead(state: GitState): string | CmdResult {
   const head = resolveHead(state);
   if (!head) return fail("fatal: no HEAD");
   if (worktreeIsDirty(state)) {
     return fail("error: cannot rebase: You have unstaged changes.");
   }
+  return head;
+}
+
+/** Fast-forward when `todos` is empty; otherwise checkout onto and load them. */
+function beginRebase(
+  state: GitState,
+  onto: string,
+  ontoName: string,
+  todos: string[],
+  fastForwardEvent = true,
+): CmdResult | null {
+  const head = rebaseHead(state);
+  if (typeof head !== "string") return head;
+  if (!todos.length) {
+    if (isAncestor(state, head, onto)) {
+      checkoutCommit(state, onto);
+      moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
+      if (fastForwardEvent) {
+        emit(state, "fast-forward", { from: head, to: onto });
+      }
+      return ok(`Fast-forwarded to ${ontoName}\n`);
+    }
+    return ok("Current branch is up to date.\n");
+  }
+  state.refs["ORIG_HEAD"] = head;
+  checkoutCommit(state, onto);
+  moveHead(state, onto, `rebase: checkout ${ontoName}`);
+  state.rebaseTodos = todos;
+  return null;
+}
+
+function rebaseInteractive(
+  state: GitState,
+  onto: string,
+  ontoName: string,
+): CmdResult {
+  const head = rebaseHead(state);
+  if (typeof head !== "string") return head;
   const unique = uniqueCommits(state, head, onto);
   if (
     !unique.length && state.rebaseTodos.every((line) => !parseTodoLine(line))
   ) {
-    if (isAncestor(state, head, onto)) {
-      checkoutCommit(state, onto);
-      moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
-      emit(state, "fast-forward", { from: head, to: onto });
-      return ok(`Fast-forwarded to ${ontoName}\n`);
-    }
-    return ok("Current branch is up to date.\n");
+    return beginRebase(state, onto, ontoName, []) ??
+      ok("Current branch is up to date.\n");
   }
   const preset = state.rebaseTodos.map(parseTodoLine);
   const usePreset = preset.length > 0 && preset.every((p) => p !== null);
@@ -1027,10 +1009,13 @@ function rebaseInteractive(
   if (!resolved.length) {
     return ok(printed.join("\n") + (printed.length ? "\n" : "noop\n"));
   }
-  state.refs["ORIG_HEAD"] = head;
-  checkoutCommit(state, onto);
-  moveHead(state, onto, `rebase: checkout ${ontoName}`);
-  state.rebaseTodos = resolved.map((s) => `${s.action} ${s.id}`);
+  const started = beginRebase(
+    state,
+    onto,
+    ontoName,
+    resolved.map((s) => `${s.action} ${s.id}`),
+  );
+  if (started) return started;
   const replayed = replayTodos(state);
   const body = printed.join("\n") + "\n" + replayed.stdout;
   return { ...replayed, stdout: body };
@@ -1041,27 +1026,15 @@ function rebaseOnto(
   onto: string,
   ontoName: string,
 ): CmdResult {
-  const head = resolveHead(state);
-  if (!head) return fail("fatal: no HEAD");
-  if (worktreeIsDirty(state)) {
-    return fail("error: cannot rebase: You have unstaged changes.");
-  }
+  const head = rebaseHead(state);
+  if (typeof head !== "string") return head;
   if (head === onto) return ok("Current branch is up to date.\n");
-  const todos = uniqueCommits(state, head, onto);
-  if (!todos.length) {
-    if (isAncestor(state, head, onto)) {
-      checkoutCommit(state, onto);
-      moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
-      emit(state, "fast-forward", { from: head, to: onto });
-      return ok(`Fast-forwarded to ${ontoName}\n`);
-    }
-    return ok("Current branch is up to date.\n");
-  }
-  state.refs["ORIG_HEAD"] = head;
-  checkoutCommit(state, onto);
-  moveHead(state, onto, `rebase: checkout ${ontoName}`);
-  state.rebaseTodos = todos;
-  return replayTodos(state);
+  return beginRebase(
+    state,
+    onto,
+    ontoName,
+    uniqueCommits(state, head, onto),
+  ) ?? replayTodos(state);
 }
 
 function rebaseWithTodos(
@@ -1070,24 +1043,7 @@ function rebaseWithTodos(
   ontoName: string,
   todos: string[],
 ): CmdResult {
-  const head = resolveHead(state);
-  if (!head) return fail("fatal: no HEAD");
-  if (worktreeIsDirty(state)) {
-    return fail("error: cannot rebase: You have unstaged changes.");
-  }
-  if (!todos.length) {
-    if (isAncestor(state, head, onto)) {
-      checkoutCommit(state, onto);
-      moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
-      return ok(`Fast-forwarded to ${ontoName}\n`);
-    }
-    return ok("Current branch is up to date.\n");
-  }
-  state.refs["ORIG_HEAD"] = head;
-  checkoutCommit(state, onto);
-  moveHead(state, onto, `rebase: checkout ${ontoName}`);
-  state.rebaseTodos = todos;
-  return replayTodos(state);
+  return beginRebase(state, onto, ontoName, todos, false) ?? replayTodos(state);
 }
 
 function replayTodos(state: GitState): CmdResult {
@@ -1167,34 +1123,62 @@ function rebaseAbort(state: GitState): CmdResult {
   return ok("Rebase aborted\n");
 }
 
-function applyPick(
+type PickPrelude = {
+  picked: ReturnType<typeof asCommit>;
+  ours: string;
+  result: MergeResult;
+};
+
+function pickThreeWay(
   state: GitState,
   pickId: string,
-  forRebase: boolean,
-): CmdResult {
+): PickPrelude | CmdResult {
   const picked = asCommit(state, pickId);
   const ours = resolveHead(state);
   if (!ours) return fail("fatal: no HEAD");
   const baseId = picked.parents[0];
-  const baseFiles = baseId ? commitFiles(state, baseId) : {};
   const result = threeWayMerge(
     state,
-    baseFiles,
+    baseId ? commitFiles(state, baseId) : {},
     commitFiles(state, ours),
     commitFiles(state, pickId),
     pickId.slice(0, 7),
   );
   applyMergeToWorktree(state, result);
+  return { picked, ours, result };
+}
+
+function pickCouldNotApply(
+  state: GitState,
+  pickId: string,
+  picked: ReturnType<typeof asCommit>,
+  kind: "rebase" | "cherry-pick",
+): CmdResult {
+  state.cherryPickHead = pickId;
+  return {
+    ok: false,
+    stdout: "",
+    stderr: `error: could not apply ${pickId.slice(0, 7)} ${
+      picked.message.split("\n")[0]
+    }\nfix conflicts and run git ${kind} --continue\n`,
+  };
+}
+
+function applyPick(
+  state: GitState,
+  pickId: string,
+  forRebase: boolean,
+): CmdResult {
+  const prelude = pickThreeWay(state, pickId);
+  if ("ok" in prelude) return prelude;
+  const { picked, ours, result } = prelude;
   if (result.conflicted) {
-    state.cherryPickHead = pickId;
-    const kind = forRebase ? "rebase" : "cherry-pick";
-    return {
-      ok: false,
-      stdout: "",
-      stderr: `error: could not apply ${pickId.slice(0, 7)} ${
-        picked.message.split("\n")[0]
-      }\nfix conflicts and run git ${kind} --continue\n`,
-    };
+    return pickCouldNotApply(
+      state,
+      pickId,
+      picked,
+      forRebase ? "rebase" : "cherry-pick",
+    );
   }
   createCommitFromIndex(
     state,
@@ -1206,28 +1190,11 @@ function applyPick(
 }
 
 function applySquash(state: GitState, pickId: string): CmdResult {
-  const picked = asCommit(state, pickId);
-  const ours = resolveHead(state);
-  if (!ours) return fail("fatal: no HEAD");
-  const baseId = picked.parents[0];
-  const baseFiles = baseId ? commitFiles(state, baseId) : {};
-  const result = threeWayMerge(
-    state,
-    baseFiles,
-    commitFiles(state, ours),
-    commitFiles(state, pickId),
-    pickId.slice(0, 7),
-  );
-  applyMergeToWorktree(state, result);
+  const prelude = pickThreeWay(state, pickId);
+  if ("ok" in prelude) return prelude;
+  const { picked, ours, result } = prelude;
   if (result.conflicted) {
-    state.cherryPickHead = pickId;
-    return {
-      ok: false,
-      stdout: "",
-      stderr: `error: could not apply ${pickId.slice(0, 7)} ${
-        picked.message.split("\n")[0]
-      }\nfix conflicts and run git rebase --continue\n`,
-    };
+    return pickCouldNotApply(state, pickId, picked, "rebase");
   }
   const current = asCommit(state, ours);
   const msg = `${current.message}\n\n${picked.message}`;
@@ -1676,4 +1643,3 @@ function cmdConfig(state: GitState, args: string[]): CmdResult {
     "fatal: unknown config (teaching vm: merge.conflictstyle, rerere.enabled)",
   );
 }
-
