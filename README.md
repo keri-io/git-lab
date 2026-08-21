@@ -8,6 +8,9 @@ Author-side TypeScript is written so call sites read as English sentences
 ([Human-readable Source Codes](https://medium.com/@beeleeong/human-readable-source-codes-988aa997692a)).
 The learner still types real Git: `GitVM.exec("git …")` is the teaching CLI.
 
+What we optimise for — readable source, a small tree, and pictures that teach —
+is in [GOALS.md](GOALS.md).
+
 ## Run locally
 
 The CLI binary is named **`deno`** (Deno). It is not `demo`.
