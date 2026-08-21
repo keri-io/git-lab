@@ -14,7 +14,7 @@ commitOnBranch(startState, "feature", "add app", {
 
 export const lesson: Lesson = {
   id: "merge",
-  order: 4,
+  order: 8,
   title: "Merge, and what a conflict is",
   unlocksAfter: ["fetch"],
   articleUrl: "https://www.themoderncoder.com/git-merge/",

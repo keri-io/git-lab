@@ -1,7 +1,7 @@
 /** Teaching-Git primitives: objects, refs, three-way merge, checkout. */
 
 import { emit } from "./events.ts";
-import { hashObject } from "./hash.ts";
+import { hashContent, hashObject } from "./hash.ts";
 import { activeWorktree, resolveHead } from "./snapshot.ts";
 import {
   type CommitObject,
@@ -155,6 +155,7 @@ export function lookupRef(state: GitState, name: string): string | null {
   if (state.refs[`refs/remotes/${name}`]) {
     return state.refs[`refs/remotes/${name}`];
   }
+  if (state.refs[`refs/tags/${name}`]) return state.refs[`refs/tags/${name}`];
   if (state.objects[name]) return name;
   const matches = Object.keys(state.objects).filter((id) =>
     id.startsWith(name) && name.length >= 4
@@ -184,6 +185,8 @@ export function resolveRevision(state: GitState, rev: string): string {
   const id = lookupRef(state, base);
   if (!id) throw new GitError(`fatal: invalid revision: ${rev}`);
   let cur = id;
+  const peeled = state.objects[cur];
+  if (peeled?.type === "tag") cur = peeled.object;
   for (let i = 0; i < walk; i++) {
     const c = asCommit(state, cur);
     if (!c.parents[0]) {
@@ -316,9 +319,15 @@ export function conflictMarkers(
   ours: string,
   theirs: string,
   label: string,
+  base = "",
+  style: GitState["conflictStyle"] = "merge",
 ): string {
   const o = ours.endsWith("\n") || ours === "" ? ours : `${ours}\n`;
   const t = theirs.endsWith("\n") || theirs === "" ? theirs : `${theirs}\n`;
+  if (style === "diff3" || style === "zdiff3") {
+    const b = base.endsWith("\n") || base === "" ? base : `${base}\n`;
+    return `<<<<<<< HEAD\n${o}||||||| base\n${b}=======\n${t}>>>>>>> ${label}\n`;
+  }
   return `<<<<<<< HEAD\n${o}=======\n${t}>>>>>>> ${label}\n`;
 }
 
@@ -377,12 +386,31 @@ export function threeWayMerge(
       continue;
     }
 
+    const key = ours !== undefined && theirs !== undefined
+      ? hashContent(`${ours}\0${theirs}`)
+      : "";
+    const recorded = key && state.rerereEnabled
+      ? state.rerereCache[key]
+      : undefined;
+    if (recorded !== undefined) {
+      const resolvedId = storeBlob(state, recorded);
+      files[path] = recorded;
+      index.push({ path, blob: resolvedId, stage: 0 });
+      continue;
+    }
+
     conflicts.push(path);
     if (baseId) index.push({ path, blob: baseId, stage: 1 });
     if (oursId) index.push({ path, blob: oursId, stage: 2 });
     if (theirsId) index.push({ path, blob: theirsId, stage: 3 });
     if (ours !== undefined && theirs !== undefined) {
-      files[path] = conflictMarkers(ours, theirs, theirsLabel);
+      files[path] = conflictMarkers(
+        ours,
+        theirs,
+        theirsLabel,
+        base ?? "",
+        state.conflictStyle ?? "merge",
+      );
     } else if (ours !== undefined) {
       files[path] = ours;
     } else if (theirs !== undefined) {
@@ -455,6 +483,16 @@ export function prettyObject(state: GitState, id: string): string {
   if (obj.type === "tree") {
     return obj.entries.map((e) => `${e.mode} ${e.name} ${e.id}`).join("\n") +
       (obj.entries.length ? "\n" : "");
+  }
+  if (obj.type === "tag") {
+    return [
+      `object ${obj.object}`,
+      `type ${obj.objectType}`,
+      `tag ${obj.tag}`,
+      `tagger ${obj.tagger}`,
+      "",
+      obj.message,
+    ].join("\n") + (obj.message.endsWith("\n") ? "" : "\n");
   }
   const lines = [
     `tree ${obj.tree}`,

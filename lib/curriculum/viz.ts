@@ -53,6 +53,75 @@ export const lessonViz: Record<LessonId, LessonViz> = {
       },
     ],
   },
+  tags: {
+    intro:
+      "HEAD already has a commit. An annotated tag is a fourth object type; the ref in refs/tags/ points at that tag object, not directly at the commit.",
+    beats: [
+      {
+        caption:
+          "main and HEAD sit on the initial commit. No tags exist yet — refs/tags is empty.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "The log is one commit. A tag will name this snapshot without moving main.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "git tag with no arguments lists annotated and lightweight tags. Still none.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "tag -a writes a tag object (object, type, tagger, message) and points refs/tags/v1.0 at it.",
+        highlightRef: "v1.0",
+      },
+      {
+        caption:
+          "The list now shows v1.0. The graph badge is the tag ref; click the commit it names.",
+        highlightRef: "v1.0",
+      },
+      {
+        caption:
+          "cat-file -p v1.0 prints the tag object, not the commit. Lightweight tags would print the commit instead.",
+        highlightRef: "v1.0",
+      },
+    ],
+  },
+  index: {
+    intro:
+      "README.md in the worktree already differs from HEAD. Watch git diff versus git diff --cached as the index catches up.",
+    beats: [
+      {
+        caption:
+          "status: README.md is modified in the worktree. The index still matches HEAD’s blob.",
+        highlightRef: "main",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "git diff is worktree versus index. You should see the unstaged “staged later” line.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "git add hashes the worktree bytes into a blob and points the index at it. HEAD is unchanged.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "git diff --cached is index versus HEAD — the snapshot the next commit would record.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "Worktree and index agree; HEAD still has the old README. That gap is what commit would close.",
+        highlightRef: "main",
+        pulseTrees: true,
+      },
+    ],
+  },
   clone: {
     intro:
       "This lab starts with origin attached and no local commits. Clone is fetch plus checkout — watch origin/main appear, then main.",
@@ -89,6 +158,73 @@ export const lessonViz: Record<LessonId, LessonViz> = {
           "Clean status: worktree, index, and HEAD match. origin/main remains a sticky note, not a second checkout.",
         highlightRef: "origin/main",
         pulseTrees: true,
+      },
+    ],
+  },
+  packs: {
+    intro:
+      "Local main is behind origin’s server. Fetch streams a pack of missing objects and moves only origin/main.",
+    beats: [
+      {
+        caption:
+          "main and origin/main still share one commit. The extra NOTES.md commit lives only on the remote so far.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Local log is the README commit. origin/main has not moved on this graph yet.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "fetch copies the missing objects (pack flash) and slides origin/main. Local main and files stay put.",
+        highlightRef: "origin/main",
+      },
+      {
+        caption:
+          "log origin/main shows the new tip. That history arrived as a pack; it is not a second checkout.",
+        highlightRef: "origin/main",
+      },
+      {
+        caption:
+          "cat-file prints the remote commit object now stored locally. Real Git would have written a .pack and .idx.",
+        highlightRef: "origin/main",
+      },
+    ],
+  },
+  reftable: {
+    intro:
+      "Refs are names in namespaces. Practice heads versus tags; real Git 3.0 stores them in reftable instead of one file per ref.",
+    beats: [
+      {
+        caption:
+          "You are on main with one commit. refs/heads/main is the only branch name so far.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "git branch lists local heads. The files backend would be .git/refs/heads/main on disk.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "feature/UI is a nested name under refs/heads. Same commit as main until you add commits.",
+        highlightRef: "feature/UI",
+      },
+      {
+        caption:
+          "Lightweight git tag v1.0 writes refs/tags/v1.0 pointing at the commit — no tag object.",
+        highlightRef: "v1.0",
+      },
+      {
+        caption:
+          "Two heads now: main and feature/UI. Reftable would log both updates in one table.",
+        highlightRef: "feature/UI",
+      },
+      {
+        caption:
+          "git tag lists v1.0. heads and tags are different namespaces even when they name the same hash.",
+        highlightRef: "v1.0",
       },
     ],
   },
@@ -171,6 +307,59 @@ export const lessonViz: Record<LessonId, LessonViz> = {
       },
       {
         caption: "Clean tree. Stages are gone. You kept theirs by adding it.",
+        pulseTrees: true,
+      },
+    ],
+  },
+  rerere: {
+    intro:
+      "Same README conflict as merge. Enable rerere, record a resolution, abort, then merge again and watch it replay.",
+    beats: [
+      {
+        caption:
+          "rerere.enabled is now true. The cache is empty until you git add a resolved conflict.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "On main, feature’s README diverged. Merge will conflict the same way as the previous lesson.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Conflict: stages 1/2/3 in the index. Worktree has markers. This is the recording input.",
+        highlightRef: "main",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "ls-files -u lists base, ours, and theirs. rerere will key the two sides, not the markers.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "checkout --theirs fills README with feature’s bytes. Still unmerged until add.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "git add records ours versus theirs → this blob in the rerere cache, and collapses stages to 0.",
+        pulseTrees: true,
+      },
+      {
+        caption:
+          "merge --abort restores the worktree. The recorded resolution stays in the cache.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Second merge hits the same sides, reapplies the cache, and writes the merge commit automatically.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Clean tree, two-parent tip, no markers. That is reuse of a recorded resolution.",
+        highlightRef: "main",
         pulseTrees: true,
       },
     ],
@@ -361,6 +550,38 @@ export const lessonViz: Record<LessonId, LessonViz> = {
       },
     ],
   },
+  "rebase-onto": {
+    intro:
+      "topic is B on top of wip’s A; main has since added core.ts. --onto replays only commits after wip onto main.",
+    beats: [
+      {
+        caption:
+          "You are on topic. wip holds commit A (a.ts). topic added B (b.ts). main has core.ts.",
+        highlightRef: "topic",
+      },
+      {
+        caption:
+          "Log of topic includes A then B. Those two sit off the old main, not on core.ts.",
+        highlightRef: "topic",
+      },
+      {
+        caption:
+          "rebase --onto main wip topic drops A as the cutoff and cherry-picks only B onto main.",
+        highlightRef: "topic",
+      },
+      {
+        caption:
+          "topic is now B' on top of main work. a.ts is gone; core.ts and b.ts remain. Old B may dangle.",
+        highlightRef: "topic",
+      },
+      {
+        caption:
+          "Clean checkout of the replayed tip. wip still names commit A; you did not delete that branch.",
+        highlightRef: "topic",
+        pulseTrees: true,
+      },
+    ],
+  },
   rewrite: {
     intro:
       "Soft reset keeps the index and files, then one new commit replaces two wip nodes. Same idea as squash.",
@@ -389,6 +610,42 @@ export const lessonViz: Record<LessonId, LessonViz> = {
       },
       {
         caption: "reflog still has the wip tips. History rewrite is labels + new objects.",
+      },
+    ],
+  },
+  gc: {
+    intro:
+      "Reset leaves the wip commit dangling. Reflog still reaches it until you expire, then prune deletes the objects.",
+    beats: [
+      {
+        caption:
+          "main is on the extra wip notes commit. NOTES.md is in HEAD. That commit is what you will drop.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Two commits on main: initial README, then wip notes. Reset will move the label backward.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "reset --hard HEAD~1 slides main to the README commit. The wip node dangles but reflog still holds it.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "reflog expire --expire=now --all drops the safety net. Nothing named still points at wip notes.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "gc --prune=now deletes unreachable objects. The dim node disappears from the object store.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Log is only the initial commit. Real Git also writes cruft packs and git maintenance timers.",
+        highlightRef: "main",
       },
     ],
   },
@@ -517,6 +774,47 @@ export const lessonViz: Record<LessonId, LessonViz> = {
       {
         caption: "develop is clean. GitFlow did not add new Git mechanics — only shape.",
         pulseTrees: true,
+      },
+    ],
+  },
+  trunk: {
+    intro:
+      "Trunk-based work is a short-lived branch on main, rebased, then fast-forwarded. No GitFlow bubble.",
+    beats: [
+      {
+        caption:
+          "You are on feature/login with login.ts. main has already added core.ts on the trunk.",
+        highlightRef: "feature/login",
+      },
+      {
+        caption:
+          "Log of the feature does not include core.ts yet. Rebase will replay login on top of trunk.",
+        highlightRef: "feature/login",
+      },
+      {
+        caption:
+          "rebase main copies the login commit onto main’s tip. New hash; linear history, no merge node.",
+        highlightRef: "feature/login",
+      },
+      {
+        caption:
+          "switch main. The feature label still sits on the replayed commit, one step ahead of main.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "merge --ff-only slides main to feature/login. If Git needed a merge commit, this would abort.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Deleting feature/login drops the label. main is a straight line with both core.ts and login.ts.",
+        highlightRef: "main",
+      },
+      {
+        caption:
+          "Log of trunk is linear. Contrast GitFlow’s --no-ff bubble on develop.",
+        highlightRef: "main",
       },
     ],
   },

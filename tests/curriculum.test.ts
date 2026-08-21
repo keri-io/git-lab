@@ -3,7 +3,7 @@ import { getLesson, lessons } from "@/lib/curriculum/mod.ts";
 import { LESSON_ORDER } from "@/lib/curriculum/types.ts";
 import { GitVM } from "@/lib/git-vm/mod.ts";
 
-Deno.test("15 lessons in chain order", () => {
+Deno.test("23 lessons in chain order", () => {
   assertEquals(lessons.map((l) => l.id), [...LESSON_ORDER]);
 });
 
@@ -47,5 +47,5 @@ Deno.test("each lesson has a notes illustration", async () => {
       throw new Error(`missing illustration for ${lesson.id}`);
     }
   }
-  assertEquals(Object.keys(ILLUSTRATIONS).length, 15);
+  assertEquals(Object.keys(ILLUSTRATIONS).length, 23);
 });

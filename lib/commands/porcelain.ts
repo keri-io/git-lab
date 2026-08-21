@@ -17,6 +17,7 @@ import {
   copyRemoteObjects,
   createCommitFromIndex,
   currentBranch,
+  filesFromIndex,
   hasUnmerged,
   indexFromFiles,
   isAncestor,
@@ -36,6 +37,7 @@ import {
   worktreeIsDirty,
 } from "../git-vm/repo.ts";
 import type { GitState, IndexEntry } from "../git-vm/types.ts";
+import { hashContent, hashObject } from "../git-vm/hash.ts";
 import { takeFlag, takeOption } from "./parse.ts";
 
 export interface CmdResult {
@@ -76,6 +78,10 @@ const KNOWN = [
   "revert",
   "cat-file",
   "ls-files",
+  "tag",
+  "diff",
+  "gc",
+  "config",
 ];
 
 export function dispatchGit(state: GitState, argv: string[]): CmdResult {
@@ -113,7 +119,7 @@ export function dispatchGit(state: GitState, argv: string[]): CmdResult {
     case "reset":
       return cmdReset(state, args);
     case "reflog":
-      return cmdReflog(state);
+      return cmdReflog(state, args);
     case "remote":
       return cmdRemote(state, args);
     case "fetch":
@@ -136,6 +142,14 @@ export function dispatchGit(state: GitState, argv: string[]): CmdResult {
       return cmdCatFile(state, args);
     case "ls-files":
       return cmdLsFiles(state, args);
+    case "tag":
+      return cmdTag(state, args);
+    case "diff":
+      return cmdDiff(state, args);
+    case "gc":
+      return cmdGc(state, args);
+    case "config":
+      return cmdConfig(state, args);
     default:
       return fail(
         `git: '${cmd}' is not a git-lab command. Known: ${KNOWN.join(", ")}.`,
@@ -632,10 +646,20 @@ function cmdAdd(state: GitState, args: string[]): CmdResult {
     : args;
   for (const path of paths) {
     if (path === "." || path === "-A") continue;
+    const stage2 = wt.index.find((e) => e.path === path && e.stage === 2);
+    const stage3 = wt.index.find((e) => e.path === path && e.stage === 3);
     wt.index = wt.index.filter((e) => e.path !== path);
     if (path in wt.files) {
       const blob = storeBlob(state, wt.files[path]);
       wt.index.push({ path, blob, stage: 0 });
+      if (state.rerereEnabled && stage2 && stage3) {
+        const ours = state.objects[stage2.blob];
+        const theirs = state.objects[stage3.blob];
+        if (ours?.type === "blob" && theirs?.type === "blob") {
+          const key = hashContent(`${ours.content}\0${theirs.content}`);
+          state.rerereCache[key] = wt.files[path];
+        }
+      }
     }
   }
   wt.index.sort((a, b) => a.path.localeCompare(b.path) || a.stage - b.stage);
@@ -746,7 +770,14 @@ function cmdReset(state: GitState, args: string[]): CmdResult {
   return ok();
 }
 
-function cmdReflog(state: GitState): CmdResult {
+function cmdReflog(state: GitState, args: string[] = []): CmdResult {
+  if (args[0] === "expire") {
+    takeFlag(args, "--all");
+    takeFlag(args, "--expire=now");
+    takeOption(args, "--expire");
+    state.reflog = [];
+    return ok("Expired reflog\n");
+  }
   const lines = state.reflog.map((e, i) => {
     const id = (e.newId ?? "0000000").slice(0, 7);
     return `${id} HEAD@{${i}}: ${e.message}`;
@@ -901,6 +932,24 @@ function cmdRebase(state: GitState, args: string[]): CmdResult {
   if (takeFlag(args, "--continue")) return rebaseContinue(state);
   if (takeFlag(args, "--skip")) return rebaseSkip(state);
   const interactive = takeFlag(args, "-i") || takeFlag(args, "--interactive");
+  const ontoOpt = takeOption(args, "--onto");
+  if (ontoOpt) {
+    const upstreamName = args[0];
+    const branchName = args[1];
+    if (!upstreamName) {
+      return fail("usage: git rebase --onto <newbase> <upstream> [<branch>]");
+    }
+    if (branchName) {
+      const sw = cmdSwitch(state, [branchName]);
+      if (!sw.ok) return sw;
+    }
+    const newbase = resolveRevision(state, ontoOpt);
+    const upstream = resolveRevision(state, upstreamName);
+    const head = resolveHead(state);
+    if (!head) return fail("fatal: no HEAD");
+    const todos = uniqueCommits(state, head, upstream);
+    return rebaseWithTodos(state, newbase, ontoOpt, todos);
+  }
   const ontoName = args[0];
   if (!ontoName) return fail("fatal: rebase requires an upstream");
   const onto = resolveRevision(state, ontoName);
@@ -1004,6 +1053,32 @@ function rebaseOnto(
       checkoutCommit(state, onto);
       moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
       emit(state, "fast-forward", { from: head, to: onto });
+      return ok(`Fast-forwarded to ${ontoName}\n`);
+    }
+    return ok("Current branch is up to date.\n");
+  }
+  state.refs["ORIG_HEAD"] = head;
+  checkoutCommit(state, onto);
+  moveHead(state, onto, `rebase: checkout ${ontoName}`);
+  state.rebaseTodos = todos;
+  return replayTodos(state);
+}
+
+function rebaseWithTodos(
+  state: GitState,
+  onto: string,
+  ontoName: string,
+  todos: string[],
+): CmdResult {
+  const head = resolveHead(state);
+  if (!head) return fail("fatal: no HEAD");
+  if (worktreeIsDirty(state)) {
+    return fail("error: cannot rebase: You have unstaged changes.");
+  }
+  if (!todos.length) {
+    if (isAncestor(state, head, onto)) {
+      checkoutCommit(state, onto);
+      moveHead(state, onto, `rebase: fast-forward to ${ontoName}`);
       return ok(`Fast-forwarded to ${ontoName}\n`);
     }
     return ok("Current branch is up to date.\n");
@@ -1459,7 +1534,7 @@ function cmdCatFile(state: GitState, args: string[]): CmdResult {
     const c = asCommit(state, resolveRevision(state, rev.slice(0, -7)));
     id = c.tree;
   } else {
-    id = resolveRevision(state, rev);
+    id = lookupRef(state, rev) ?? resolveRevision(state, rev);
   }
   return ok(prettyObject(state, id));
 }
@@ -1476,3 +1551,129 @@ function cmdLsFiles(state: GitState, args: string[]): CmdResult {
   });
   return ok(lines.join("\n") + (lines.length ? "\n" : ""));
 }
+
+function cmdTag(state: GitState, args: string[]): CmdResult {
+  const annotated = takeFlag(args, "-a") || takeFlag(args, "--annotate");
+  const message = takeOption(args, "-m") ?? takeOption(args, "--message");
+  const name = args.find((a) => !a.startsWith("-"));
+  if (!name) {
+    const tags = Object.keys(state.refs)
+      .filter((r) => r.startsWith("refs/tags/"))
+      .map((r) => r.slice("refs/tags/".length))
+      .sort();
+    return ok(tags.join("\n") + (tags.length ? "\n" : ""));
+  }
+  const head = resolveHead(state);
+  if (!head) return fail("fatal: Failed to resolve 'HEAD' as a valid ref.");
+  if (state.refs[`refs/tags/${name}`]) {
+    return fail(`fatal: tag '${name}' already exists`);
+  }
+  if (annotated) {
+    const msg = message ?? name;
+    const body = [
+      `object ${head}`,
+      "type commit",
+      `tag ${name}`,
+      "tagger learner",
+      "",
+      msg,
+    ].join("\n");
+    const id = hashObject("tag", body);
+    state.objects[id] = {
+      type: "tag",
+      id,
+      object: head,
+      objectType: "commit",
+      tag: name,
+      tagger: "learner",
+      message: msg,
+    };
+    state.refs[`refs/tags/${name}`] = id;
+    return ok();
+  }
+  state.refs[`refs/tags/${name}`] = head;
+  return ok();
+}
+
+function cmdDiff(state: GitState, args: string[]): CmdResult {
+  const cached = takeFlag(args, "--cached") || takeFlag(args, "--staged");
+  const wt = activeWorktree(state);
+  const head = resolveHead(state);
+  const headFiles = head ? commitFiles(state, head) : {};
+  const indexFiles = filesFromIndex(state, wt.index);
+  const left = cached ? headFiles : indexFiles;
+  const right = cached ? indexFiles : { ...wt.files };
+  const paths = new Set([...Object.keys(left), ...Object.keys(right)]);
+  const chunks: string[] = [];
+  for (const path of [...paths].sort()) {
+    if ((left[path] ?? "") === (right[path] ?? "")) continue;
+    chunks.push(`diff --git a/${path} b/${path}\n`);
+  }
+  return ok(chunks.join(""));
+}
+
+function cmdGc(state: GitState, args: string[]): CmdResult {
+  const pruneNow = takeFlag(args, "--prune=now");
+  if (!pruneNow) {
+    return ok("nothing to pack (teaching vm keeps objects loose)\n");
+  }
+  const keep = new Set<string>();
+  const walk = (id: string | null | undefined) => {
+    if (!id || keep.has(id)) return;
+    keep.add(id);
+    const obj = state.objects[id];
+    if (!obj) return;
+    if (obj.type === "commit") {
+      walk(obj.tree);
+      obj.parents.forEach(walk);
+    } else if (obj.type === "tree") {
+      for (const e of obj.entries) walk(e.id);
+    } else if (obj.type === "tag") {
+      walk(obj.object);
+    }
+  };
+  Object.values(state.refs).forEach((id) => walk(id));
+  state.stash.forEach((id) => walk(id));
+  for (const remote of Object.values(state.remotes)) {
+    Object.values(remote.refs).forEach((id) => walk(id));
+    for (const id of Object.keys(remote.objects)) keep.add(id);
+  }
+  for (const e of state.reflog) {
+    walk(e.oldId);
+    walk(e.newId);
+  }
+  let dropped = 0;
+  for (const id of Object.keys(state.objects)) {
+    if (!keep.has(id)) {
+      delete state.objects[id];
+      dropped++;
+    }
+  }
+  return ok(`Pruned ${dropped} unreachable object(s)\n`);
+}
+
+function cmdConfig(state: GitState, args: string[]): CmdResult {
+  const key = args[0];
+  const value = args[1];
+  if (key === "merge.conflictstyle" && value) {
+    if (value !== "merge" && value !== "diff3" && value !== "zdiff3") {
+      return fail("fatal: unknown conflict style");
+    }
+    state.conflictStyle = value;
+    return ok();
+  }
+  if (key === "rerere.enabled" && value) {
+    state.rerereEnabled = value === "true" || value === "1";
+    return ok();
+  }
+  if (key && value === undefined) {
+    if (key === "merge.conflictstyle") return ok(`${state.conflictStyle}\n`);
+    if (key === "rerere.enabled") {
+      return ok(state.rerereEnabled ? "true\n" : "false\n");
+    }
+  }
+  return fail(
+    "fatal: unknown config (teaching vm: merge.conflictstyle, rerere.enabled)",
+  );
+}
+

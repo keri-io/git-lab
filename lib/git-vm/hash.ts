@@ -30,7 +30,7 @@ export function hashContent(payload: string): string {
 }
 
 export function hashObject(
-  type: "blob" | "tree" | "commit",
+  type: "blob" | "tree" | "commit" | "tag",
   body: string,
 ): string {
   return hashContent(`${type} ${body.length}\0${body}`);

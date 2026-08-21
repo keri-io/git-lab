@@ -13,7 +13,7 @@ const fixId = commitOnBranch(startState, "hotfix", "urgent fix", {
 
 export const lesson: Lesson = {
   id: "cherry-pick",
-  order: 9,
+  order: 14,
   title: "Cherry-pick: copy one commit’s change",
   unlocksAfter: ["reset"],
   articleUrl: "https://www.themoderncoder.com/git-cherry-pick/",

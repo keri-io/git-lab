@@ -7,7 +7,7 @@ startState.worktrees[0].files["extra.md"] = "forgot this\n";
 
 export const lesson: Lesson = {
   id: "amend",
-  order: 7,
+  order: 12,
   title: "Amend: the smallest rewrite",
   unlocksAfter: ["fork"],
   articleUrl: "https://www.themoderncoder.com/rewriting-git-history/",

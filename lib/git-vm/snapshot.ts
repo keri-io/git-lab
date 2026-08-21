@@ -11,6 +11,11 @@ import {
 /** Coerce missing `bare` so fixtures written before this field still load. */
 export function coerceBare(state: GitState): GitState {
   if (state.bare !== true) state.bare = false;
+  if (state.conflictStyle !== "diff3" && state.conflictStyle !== "zdiff3") {
+    state.conflictStyle = "merge";
+  }
+  if (typeof state.rerereEnabled !== "boolean") state.rerereEnabled = false;
+  if (!state.rerereCache) state.rerereCache = {};
   return state;
 }
 
@@ -79,6 +84,7 @@ export function snapshotOf(state: GitState): Snapshot {
     reachable.add(id);
     const obj = state.objects[id];
     if (obj?.type === "commit") obj.parents.forEach(walk);
+    if (obj?.type === "tag") walk(obj.object);
   };
   Object.values(state.refs).forEach(walk);
   state.stash.forEach(walk);
@@ -91,11 +97,15 @@ export function snapshotOf(state: GitState): Snapshot {
   }
 
   const refs: GraphRef[] = [];
-  for (const [name, target] of Object.entries(state.refs)) {
+  for (const [name, raw] of Object.entries(state.refs)) {
+    const peeled = state.objects[raw];
+    const target = peeled?.type === "tag" ? peeled.object : raw;
     const kind = name.startsWith("refs/remotes/")
       ? "remote"
       : name.startsWith("refs/stash")
       ? "stash"
+      : name.startsWith("refs/tags/")
+      ? "tag"
       : name.startsWith("refs/heads/")
       ? "branch"
       : "special";

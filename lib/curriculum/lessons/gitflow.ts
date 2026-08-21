@@ -18,7 +18,7 @@ commitOnBranch(startState, "feature/login", "add login", {
 
 export const lesson: Lesson = {
   id: "gitflow",
-  order: 15,
+  order: 22,
   title: "GitFlow: convention on top of merge",
   unlocksAfter: ["worktrees"],
   articleUrl:

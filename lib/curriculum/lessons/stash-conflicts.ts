@@ -29,7 +29,7 @@ commitOnBranch(startState, "main", "main edited readme", {
 
 export const lesson: Lesson = {
   id: "stash-conflicts",
-  order: 13,
+  order: 20,
   title: "Stash merge conflicts",
   unlocksAfter: ["stash"],
   articleUrl: "https://www.themoderncoder.com/fix-git-stash-conflicts/",

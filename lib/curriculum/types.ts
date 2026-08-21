@@ -29,20 +29,28 @@ export interface Lesson {
 
 export const LESSON_ORDER = [
   "model",
+  "tags",
+  "index",
   "clone",
+  "packs",
+  "reftable",
   "fetch",
   "merge",
+  "rerere",
   "pull",
   "fork",
   "amend",
   "reset",
   "cherry-pick",
   "rebase",
+  "rebase-onto",
   "rewrite",
+  "gc",
   "stash",
   "stash-conflicts",
   "worktrees",
   "gitflow",
+  "trunk",
 ] as const;
 
 export type LessonId = (typeof LESSON_ORDER)[number];

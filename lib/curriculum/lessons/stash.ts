@@ -6,9 +6,9 @@ startState.worktrees[0].files["README.md"] = "# demo\ndraft\n";
 
 export const lesson: Lesson = {
   id: "stash",
-  order: 12,
+  order: 19,
   title: "Stash: commits that are not on a branch",
-  unlocksAfter: ["rewrite"],
+  unlocksAfter: ["gc"],
   articleUrl: "https://www.themoderncoder.com/git-stash/",
   narrative:
     `Stash writes real commits, then resets your worktree to HEAD so you can switch branches. It is not a clipboard. Default stash ignores untracked files: new files you never git add’d still sit in the worktree. Fix that with git add then stash, or git stash push -u.

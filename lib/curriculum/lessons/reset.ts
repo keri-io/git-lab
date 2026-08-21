@@ -10,7 +10,7 @@ commitOnBranch(startState, "main", "wip notes", {
 
 export const lesson: Lesson = {
   id: "reset",
-  order: 8,
+  order: 13,
   title: "Reset and reflog: move the label on purpose",
   unlocksAfter: ["amend"],
   narrative:

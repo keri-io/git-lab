@@ -9,7 +9,7 @@ commitOnBranch(startState, "hotfix", "hotfix patch", {
 
 export const lesson: Lesson = {
   id: "worktrees",
-  order: 14,
+  order: 21,
   title: "Worktrees: isolation without stashing",
   unlocksAfter: ["stash-conflicts"],
   articleUrl: "https://gist.github.com/ashwch/946ad983977c9107db7ee9abafeb95bd",

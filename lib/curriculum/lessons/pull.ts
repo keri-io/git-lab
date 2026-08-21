@@ -11,9 +11,9 @@ const remoteTip = startState.remotes.origin.refs["refs/heads/main"]!;
 
 export const lesson: Lesson = {
   id: "pull",
-  order: 5,
+  order: 10,
   title: "git pull: fetch then merge",
-  unlocksAfter: ["merge"],
+  unlocksAfter: ["rerere"],
   narrative:
     `git pull is fetch, then integrate into the current branch. Fetch still downloads missing objects and updates remote-tracking refs. Pull then merges (historically git merge FETCH_HEAD). The working tree and index can change.
 

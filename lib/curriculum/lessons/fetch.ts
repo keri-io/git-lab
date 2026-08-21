@@ -11,9 +11,9 @@ const remoteTip = startState.remotes.origin.refs["refs/heads/main"]!;
 
 export const lesson: Lesson = {
   id: "fetch",
-  order: 3,
+  order: 7,
   title: "git fetch: download, do not integrate",
-  unlocksAfter: ["clone"],
+  unlocksAfter: ["reftable"],
   narrative:
     `git fetch is the same network step as clone, without moving your branch or touching your files. The client now sends have for objects it already stores, so the pack is only new history. Git then updates refs/remotes/origin/*. Your refs/heads/main does not move.
 

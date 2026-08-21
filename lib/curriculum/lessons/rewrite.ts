@@ -18,9 +18,9 @@ commitOnBranch(startState, "main", "wip two", {
 
 export const lesson: Lesson = {
   id: "rewrite",
-  order: 11,
+  order: 17,
   title: "Rewriting history: the same tools, on purpose",
-  unlocksAfter: ["rebase"],
+  unlocksAfter: ["rebase-onto"],
   articleUrl: "https://www.themoderncoder.com/rewriting-git-history/",
   narrative:
     `Anything that creates new commits and moves a branch rewrites history. git revert does not: it adds a commit that applies the inverse patch. Use revert on published main.

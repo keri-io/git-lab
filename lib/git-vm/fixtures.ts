@@ -27,6 +27,9 @@ export function emptyState(): GitState {
     conflicted: false,
     cherryPickHead: null,
     rebaseTodos: [],
+    conflictStyle: "merge",
+    rerereEnabled: false,
+    rerereCache: {},
   };
 }
 

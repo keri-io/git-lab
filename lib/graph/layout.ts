@@ -9,6 +9,7 @@ export function prettyRef(name: string): string {
   return name
     .replace(/^refs\/heads\//, "")
     .replace(/^refs\/remotes\//, "")
+    .replace(/^refs\/tags\//, "")
     .replace(/^refs\/stash$/, "stash");
 }
 
@@ -140,7 +141,10 @@ export function layoutCommitGraph(snapshot: Snapshot): CommitLayout {
 
   const branchHeads: Record<string, string> = {};
   for (const ref of snapshot.refs) {
-    if (ref.kind === "branch" || ref.kind === "remote" || ref.kind === "stash") {
+    if (
+      ref.kind === "branch" || ref.kind === "remote" || ref.kind === "stash" ||
+      ref.kind === "tag"
+    ) {
       branchHeads[prettyRef(ref.name)] = ref.target;
     }
   }
@@ -149,7 +153,8 @@ export function layoutCommitGraph(snapshot: Snapshot): CommitLayout {
     const branches = snapshot.refs
       .filter((r) =>
         r.target === commit.id &&
-        (r.kind === "branch" || r.kind === "remote" || r.kind === "stash")
+        (r.kind === "branch" || r.kind === "remote" || r.kind === "stash" ||
+          r.kind === "tag")
       )
       .map((r) => prettyRef(r.name));
     return {

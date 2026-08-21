@@ -5,9 +5,9 @@ const { remote, tip } = originFixture();
 
 export const lesson: Lesson = {
   id: "clone",
-  order: 2,
+  order: 4,
   title: "What git clone does",
-  unlocksAfter: ["model"],
+  unlocksAfter: ["index"],
   narrative:
     `git clone is not “download the files.” It is init, plus recording a remote, plus fetch, plus checkout. The remote named origin is a config alias whose fetch refspec copies their refs/heads/* into your refs/remotes/origin/*. After negotiation, the server streams one pack of objects you do not already have.
 

@@ -29,7 +29,17 @@ export interface CommitObject {
   author: string;
 }
 
-export type GitObject = BlobObject | TreeObject | CommitObject;
+export interface TagObject {
+  type: "tag";
+  id: ObjectId;
+  object: ObjectId;
+  objectType: "commit";
+  tag: string;
+  tagger: string;
+  message: string;
+}
+
+export type GitObject = BlobObject | TreeObject | CommitObject | TagObject;
 
 export interface IndexEntry {
   path: string;
@@ -88,6 +98,10 @@ export interface GitState {
   conflicted: boolean;
   cherryPickHead: ObjectId | null;
   rebaseTodos: string[];
+  conflictStyle: "merge" | "diff3" | "zdiff3";
+  rerereEnabled: boolean;
+  /** Fingerprint of ours\\0theirs → resolved file bytes. */
+  rerereCache: Record<string, string>;
 }
 
 /** Serializable view the graph libraries consume. */
@@ -101,7 +115,7 @@ export interface GraphCommit {
 export interface GraphRef {
   name: string;
   target: ObjectId;
-  kind: "head" | "branch" | "remote" | "stash" | "special";
+  kind: "head" | "branch" | "remote" | "stash" | "tag" | "special";
 }
 
 export interface Snapshot {
@@ -157,4 +171,8 @@ export type Porcelain =
   | "worktree"
   | "revert"
   | "cat-file"
-  | "ls-files";
+  | "ls-files"
+  | "tag"
+  | "diff"
+  | "gc"
+  | "config";

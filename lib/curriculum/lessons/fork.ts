@@ -15,7 +15,7 @@ const upstreamTip = startState.remotes.upstream.refs["refs/heads/main"]!;
 
 export const lesson: Lesson = {
   id: "fork",
-  order: 6,
+  order: 11,
   title: "Fork: a second remote, not a Git command",
   unlocksAfter: ["pull"],
   narrative:

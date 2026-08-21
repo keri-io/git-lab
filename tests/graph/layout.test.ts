@@ -29,6 +29,7 @@ Deno.test("prettyRef strips refs/heads and names stash", () => {
   assertEquals(prettyRef("refs/heads/main"), "main");
   assertEquals(prettyRef("refs/remotes/origin/main"), "origin/main");
   assertEquals(prettyRef("refs/stash"), "stash");
+  assertEquals(prettyRef("refs/tags/v1.0"), "v1.0");
 });
 
 Deno.test("empty snapshot yields no nodes", () => {

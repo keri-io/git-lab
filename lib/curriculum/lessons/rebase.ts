@@ -27,7 +27,7 @@ checkoutCommit(startState, oldFeature);
 
 export const lesson: Lesson = {
   id: "rebase",
-  order: 10,
+  order: 15,
   title: "Rebase: cherry-pick in a loop",
   unlocksAfter: ["cherry-pick"],
   articleUrl:
