@@ -60,7 +60,7 @@ That immutability is why later chapters talk about rewriting history as creating
 // --- tags ---
 function tagsLesson() {
   return speak("tags", "Tags: name a commit without moving a branch")
-    .after("model")
+    .after("worktrees")
     .article("https://git-scm.com/book/en/v2/Git-Internals-Git-Objects")
     .says(`A tag is a human-readable name for a commit that does not move when you make new commits. Branches live under refs/heads/ and advance with each commit; tags live under refs/tags/ and stay fixed unless you delete or move them on purpose.
 
@@ -102,7 +102,7 @@ function indexLesson() {
   startState.worktrees[0].files["README.md"] = "# demo\nstaged later\n";
 
   return speak("index", "The index: staging area and DIRC cache")
-    .after("tags")
+    .after("model")
     .article("https://git-scm.com/docs/git-diff")
     .says(`The index is Git’s staging area: the exact snapshot the next commit will record. On disk it is a binary cache called DIRC (Directory Index Cache). Each entry stores path, mode, blob hash, and cached stat metadata (mtime, size, inode) so git status can skip re-hashing unchanged files.
 
@@ -208,7 +208,7 @@ function packsLesson() {
   const remoteTip = startState.remotes.origin.refs["refs/heads/main"]!;
 
   return speak("packs", "Packfiles: loose objects and fetch transport")
-    .after("clone")
+    .after("fetch")
     .article("https://git-scm.com/book/en/v2/Git-Internals-Packfiles")
     .says(`Fresh objects start loose: one zlib-compressed file per hash under .git/objects. Over time git gc packs them into a packfile (.pack) — a single stream of deltified, compressed objects — plus a pack index (.idx) that maps object id to byte offset so lookups stay fast without scanning the whole pack.
 
@@ -300,7 +300,7 @@ function fetchLesson() {
   const remoteTip = startState.remotes.origin.refs["refs/heads/main"]!;
 
   return speak("fetch", "git fetch: download, do not integrate")
-    .after("reftable")
+    .after("clone")
     .says(`git fetch is the same network step as clone, without moving your branch or touching your files. The client now sends have for objects it already stores, so the pack is only new history. Git then updates refs/remotes/origin/*. Your refs/heads/main does not move.
 
 git status may say you are behind origin/main because it compares two labels. After fetch, local main can sit one commit behind origin/main. The next move is git merge origin/main, not pull yet. Inspect with git log HEAD..origin/main for commits they have and you do not.
@@ -318,7 +318,7 @@ Your sandbox starts cloned at the initial README commit. Origin’s main has wal
     .then("Terminal log is this one commit. origin/main’s badge has not moved; fetch will slide it onto a new node.", "main")
     .then("fetch streams a pack and slides origin/main forward. README.md in the worktree must not change.", "origin/main trees")
     .then("Terminal log still starts at local main. Click origin/main’s node — it is in the object store, just not checked out.", "origin/main")
-    .then("status stays clean on the old snapshot. Fetch never merges. Pull is the next lesson.", "trees")
+    .then("status stays clean on the old snapshot. Fetch never merges. Merge and pull come after this picture.", "trees")
     .ask("What does git fetch change?", ["HEAD, the index, and the worktree", "Only objects plus refs/remotes/origin/* (and similar tracking refs)", "refs/heads/main to match origin", "The remote server’s branches"], 1, "Fetch never checks out. Integration is a later merge or rebase of those tracking refs.")
     .ask("git status says you are behind origin/main. Why?", ["The worktree files are older than the index", "It compares refs/heads/main with refs/remotes/origin/main", "The packfile failed to unpack NOTES.md", "HEAD is detached"], 1, "Behind/ahead is two labels. Your files can be clean and still be behind the tracking ref.")
     .ask("Why is fetch always safe relative to pull?", ["It cannot download a rewritten branch", "It never mutates the current branch, index, or worktree", "It fast-forwards main automatically", "It deletes local commits that origin does not have"], 1, "Pull integrates into the current branch and can conflict. Fetch only grows storage and moves sticky notes.")
@@ -348,7 +348,7 @@ function mergeLesson() {
   }, { from: initial, checkout: false });
 
   return speak("merge", "Merge, and what a conflict is")
-    .after("fetch")
+    .after("reftable")
     .article("https://www.themoderncoder.com/git-merge/")
     .says(`Merge is how Git combines two tips. It finds the merge base (best common ancestor). If main is an ancestor of the named commit, Git fast-forwards: it only moves the main label. If both sides moved, Git does a three-way merge of the base tree, ours (HEAD), and theirs, then writes a merge commit with two parents.
 
@@ -403,7 +403,7 @@ function rerereLesson() {
   }, { from: initial, checkout: false });
 
   return speak("rerere", "rerere: remember conflict resolutions")
-    .after("merge")
+    .after("fork")
     .article("https://git-scm.com/docs/git-rerere")
     .says(`Conflict markers show two sides. merge.conflictstyle merge prints <<<<<<< HEAD, =======, and >>>>>>> label. diff3 and zdiff3 add a ||||||| base section with the merge-base text so you see what both sides changed from.
 
@@ -421,7 +421,7 @@ Enable rerere, merge feature, resolve README.md once, abort, then merge feature 
     .hint("Enable rerere, record a README resolution, abort, then merge feature again so HEAD is a two-parent commit with a clean README.")
     .watch("Same README conflict as merge. Enable rerere, record a resolution, abort, then merge again and watch it replay.")
     .then("rerere.enabled is now true. The cache is empty until you git add a resolved conflict.", "main")
-    .then("On main, feature’s README diverged. Merge will conflict the same way as the previous lesson.", "main")
+    .then("On main, feature’s README diverged. Merge will conflict the same way as the merge lesson.", "main")
     .then("Conflict: stages 1/2/3 in the index. Worktree has markers. This is the recording input.", "main trees")
     .then("ls-files -u lists base, ours, and theirs. rerere will key the two sides, not the markers.", "trees")
     .then("checkout --theirs fills README with feature’s bytes. Still unmerged until add.", "trees")
@@ -455,7 +455,7 @@ function pullLesson() {
   const remoteTip = startState.remotes.origin.refs["refs/heads/main"]!;
 
   return speak("pull", "git pull: fetch then merge")
-    .after("rerere")
+    .after("merge")
     .says(`git pull is fetch, then integrate into the current branch. Fetch still downloads missing objects and updates remote-tracking refs. Pull then merges (historically git merge FETCH_HEAD). The working tree and index can change.
 
 Pull can fast-forward, write a merge commit, or conflict. Fetch alone cannot.
@@ -543,7 +543,7 @@ function amendLesson() {
   startState.worktrees[0].files["extra.md"] = "forgot this\n";
 
   return speak("amend", "Amend: the smallest rewrite")
-    .after("fork")
+    .after("rerere")
     .article("https://www.themoderncoder.com/rewriting-git-history/")
     .says(`Amend writes a new commit with the same parent(s) and moves the branch label. Objects never change; labels move. The long way is git reset HEAD~1 (uncommit, keep the index) then re-stage and commit. Amend is that in one step.
 
@@ -1085,7 +1085,7 @@ function gitflowLesson() {
   });
 
   return speak("gitflow", "GitFlow: convention on top of merge")
-    .after("worktrees")
+    .after("tags")
     .article("https://www.themoderncoder.com/a-better-git-workflow-with-rebase/")
     .says(`GitFlow adds no new Git mechanics. It is a naming scheme plus merge --no-ff so the feature stays a visible bubble instead of fast-forwarding develop into a straight line. main (or master) is production; each commit there is a release. develop is next-release integration.
 
@@ -1176,16 +1176,15 @@ You are on feature/login. main already has core.ts; your branch has login.ts but
 
 export const lessons = [
   modelLesson(),
-  tagsLesson(),
   indexLesson(),
   cloneLesson(),
+  fetchLesson(),
   packsLesson(),
   reftableLesson(),
-  fetchLesson(),
   mergeLesson(),
-  rerereLesson(),
   pullLesson(),
   forkLesson(),
+  rerereLesson(),
   amendLesson(),
   resetLesson(),
   cherry_pickLesson(),
@@ -1196,6 +1195,7 @@ export const lessons = [
   stashLesson(),
   stash_conflictsLesson(),
   worktreesLesson(),
+  tagsLesson(),
   gitflowLesson(),
   trunkLesson(),
 ];

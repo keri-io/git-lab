@@ -7,6 +7,13 @@ Deno.test("23 lessons in chain order", () => {
   assertEquals(lessons.map((l) => l.id), [...LESSON_ORDER]);
 });
 
+Deno.test("each lesson unlocks after the previous in LESSON_ORDER", () => {
+  for (const [i, lesson] of lessons.entries()) {
+    const expected = i === 0 ? [] : [LESSON_ORDER[i - 1]];
+    assertEquals(lesson.unlocksAfter, expected, lesson.id);
+  }
+});
+
 Deno.test("each lesson startState snapshots and goalCheck is false at start", () => {
   for (const lesson of lessons) {
     const found = getLesson(lesson.id);
