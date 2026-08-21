@@ -5,9 +5,11 @@ import {
   originFixture,
   seededLocalFromOrigin,
 } from "../git-vm/fixtures.ts";
-import type { GitObject, GitState, IndexEntry } from "../git-vm/types.ts";
+import { checkoutCommit } from "../git-vm/repo.ts";
+import type { GitObject, GitState } from "../git-vm/types.ts";
 
 export {
+  checkoutCommit,
   cloneJson,
   emptyState,
   makeCommit,
@@ -15,29 +17,6 @@ export {
   originFixture,
   seededLocalFromOrigin,
 };
-
-export function checkoutCommit(state: GitState, commitId: string): void {
-  const obj = state.objects[commitId];
-  if (!obj || obj.type !== "commit") {
-    throw new Error(`checkout: missing commit ${commitId}`);
-  }
-  const tree = state.objects[obj.tree];
-  if (!tree || tree.type !== "tree") {
-    throw new Error(`checkout: missing tree ${obj.tree}`);
-  }
-  const wt = state.worktrees[0];
-  wt.head = commitId;
-  wt.files = {};
-  const index: IndexEntry[] = [];
-  for (const entry of tree.entries) {
-    const blob = state.objects[entry.id];
-    if (blob?.type === "blob") {
-      wt.files[entry.name] = blob.content;
-      index.push({ path: entry.name, blob: entry.id, stage: 0 });
-    }
-  }
-  wt.index = index;
-}
 
 export function commitOnBranch(
   state: GitState,
