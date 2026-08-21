@@ -1,5 +1,5 @@
 import { cloneJson } from "./clone.ts";
-import { coerceBare, snapshotOf } from "./snapshot.ts";
+import { activeWorktree, coerceBare, snapshotOf } from "./snapshot.ts";
 import type { CommandResult, GitEvent, GitState, Snapshot } from "./types.ts";
 import { emptyState } from "./fixtures.ts";
 import { runCommand } from "../commands/dispatch.ts";
@@ -45,6 +45,36 @@ export class GitVM {
       snapshot,
       events,
     };
+  }
+
+  /** Author-side: write a worktree file. Learner still types git add/commit. */
+  file(path: string, content: string): this {
+    activeWorktree(this.#state).files[path] = content;
+    return this;
+  }
+
+  stage(path: string): this {
+    const r = this.exec(`git add ${path}`);
+    if (!r.ok) throw new Error(r.stderr);
+    return this;
+  }
+
+  commit(message: string): this {
+    const r = this.exec(`git commit -m ${JSON.stringify(message)}`);
+    if (!r.ok) throw new Error(r.stderr);
+    return this;
+  }
+
+  branch(name: string): this {
+    const r = this.exec(`git switch -c ${name}`);
+    if (!r.ok) throw new Error(r.stderr);
+    return this;
+  }
+
+  onto(name: string): this {
+    const r = this.exec(`git switch ${name}`);
+    if (!r.ok) throw new Error(r.stderr);
+    return this;
   }
 }
 

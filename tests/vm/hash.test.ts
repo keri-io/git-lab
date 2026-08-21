@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import { hashContent, hashObject } from "@/lib/git-vm/hash.ts";
-import { activeWorktree, GitVM } from "@/lib/git-vm/mod.ts";
+import { GitVM } from "@/lib/git-vm/mod.ts";
 
 const HEX40 = /^[0-9a-f]{40}$/;
 
@@ -22,9 +22,7 @@ Deno.test("hashContent is 40 distinct hex chars, deterministic, not a repeated 1
 
 Deno.test("cat-file tree ids are 40 hex chars, not a repeated 16-char block", () => {
   const vm = new GitVM();
-  activeWorktree(vm.state).files["README.md"] = "# demo\n";
-  assert(vm.exec("git add README.md").ok);
-  assert(vm.exec('git commit -m "initial"').ok);
+  vm.file("README.md", "# demo\n").stage("README.md").commit("initial");
   const printed = vm.exec("git cat-file -p HEAD^{tree}");
   assert(printed.ok, printed.stderr);
   const ids = [...printed.stdout.matchAll(/\b([0-9a-f]+)\b/g)].map((m) => m[1])

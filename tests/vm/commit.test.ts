@@ -58,12 +58,8 @@ Deno.test("amend creates a NEW commit id; old id stays in objects; branch points
 
 function twoCommits(): GitVM {
   const vm = new GitVM(emptyState());
-  write(vm, "a.txt", "v1\n");
-  vm.exec("git add a.txt");
-  vm.exec('git commit -m "first"');
-  write(vm, "a.txt", "v2\n");
-  vm.exec("git add a.txt");
-  vm.exec('git commit -m "second"');
+  vm.file("a.txt", "v1\n").stage("a.txt").commit("first")
+    .file("a.txt", "v2\n").stage("a.txt").commit("second");
   return vm;
 }
 

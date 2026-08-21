@@ -189,8 +189,7 @@ export function ObjCard(
   const h = objCardH(rows.length);
   const tabW = hashTabW(hash);
   const stroke = OBJ_STROKE[kind];
-  const fill =
-    `color-mix(in srgb, ${stroke} 16%, var(--lg-surface))`;
+  const fill = `color-mix(in srgb, ${stroke} 16%, var(--lg-surface))`;
   const title = kind[0]!.toUpperCase() + kind.slice(1);
   const cx = x + w / 2;
   return (
@@ -275,8 +274,7 @@ export function Obj(
   const width = w ?? (kind === "blob" ? 120 : 108);
   const height = h ?? 50;
   const stroke = OBJ_STROKE[kind];
-  const fill =
-    `color-mix(in srgb, ${stroke} 18%, var(--lg-surface))`;
+  const fill = `color-mix(in srgb, ${stroke} 18%, var(--lg-surface))`;
   const kindY = hash ? y + 16 : y + (body ? height / 2 - 6 : height / 2 + 4);
   const bodyY = hash ? y + 34 : y + height / 2 + 12;
   return (
@@ -329,6 +327,81 @@ export function Obj(
           </text>
         )
         : null}
+    </g>
+  );
+}
+
+type ChainNode = { hash: string; body: string; dim?: boolean };
+
+/** One commit → tree → blob row with the two standard edges. */
+export function objChainRow(
+  {
+    y,
+    commitX,
+    treeX,
+    blobX,
+    markerId,
+    commit,
+    tree,
+    blob,
+    commitW = 108,
+    treeW = 108,
+    objH = 50,
+  }: {
+    y: number;
+    commitX: number;
+    treeX: number;
+    blobX: number;
+    markerId: string;
+    commit: ChainNode;
+    tree: ChainNode;
+    blob: ChainNode;
+    commitW?: number;
+    treeW?: number;
+    objH?: number;
+  },
+) {
+  const midY = y + objH / 2;
+  return (
+    <g>
+      <Obj
+        x={commitX}
+        y={y}
+        kind="commit"
+        hash={commit.hash}
+        body={commit.body}
+        dim={commit.dim}
+      />
+      <Obj
+        x={treeX}
+        y={y}
+        kind="tree"
+        hash={tree.hash}
+        body={tree.body}
+        dim={tree.dim}
+      />
+      <Obj
+        x={blobX}
+        y={y}
+        kind="blob"
+        hash={blob.hash}
+        body={blob.body}
+        dim={blob.dim}
+      />
+      <Edge
+        x1={commitX + commitW}
+        y1={midY}
+        x2={treeX}
+        y2={midY}
+        markerId={markerId}
+      />
+      <Edge
+        x1={treeX + treeW}
+        y1={midY}
+        x2={blobX}
+        y2={midY}
+        markerId={markerId}
+      />
     </g>
   );
 }

@@ -15,18 +15,7 @@ export default define.page(function LessonPage(ctx) {
       <Head>
         <title>{lesson.title} · Git Lab</title>
       </Head>
-      <LessonStudio
-        lessonId={lesson.id}
-        id={lesson.id}
-        title={lesson.title}
-        narrative={lesson.narrative}
-        objectives={lesson.objectives}
-        allowedCommands={lesson.allowedCommands}
-        demoScript={lesson.demoScript}
-        goalHint={lesson.goalHint}
-        quiz={lesson.quiz}
-        articleUrl={lesson.articleUrl}
-      />
+      <LessonStudio lessonId={lesson.id} />
     </div>
   );
 });

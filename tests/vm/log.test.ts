@@ -5,24 +5,15 @@ import {
   seededLocalFromOrigin,
 } from "@/lib/git-vm/mod.ts";
 
-function write(vm: GitVM, path: string, content: string) {
-  activeWorktree(vm.state).files[path] = content;
-}
-
 function wt(vm: GitVM) {
   return activeWorktree(vm.state);
 }
 
 Deno.test("git log --graph prints a text DAG with * markers", () => {
   const vm = new GitVM(seededLocalFromOrigin());
-  vm.exec("git switch -c feature");
-  write(vm, "feat.txt", "f\n");
-  vm.exec("git add feat.txt");
-  vm.exec('git commit -m "on feature"');
-  vm.exec("git switch main");
-  write(vm, "main.txt", "m\n");
-  vm.exec("git add main.txt");
-  vm.exec('git commit -m "on main"');
+  vm.branch("feature").file("feat.txt", "f\n").stage("feat.txt").commit(
+    "on feature",
+  ).onto("main").file("main.txt", "m\n").stage("main.txt").commit("on main");
   const merged = vm.exec("git merge --no-ff feature");
   assert(merged.ok, merged.stderr);
   const r = vm.exec("git log --graph --oneline");
@@ -35,15 +26,11 @@ Deno.test("git log --graph prints a text DAG with * markers", () => {
 
 Deno.test("git log A..B is reachable from B excluding A", () => {
   const vm = new GitVM(seededLocalFromOrigin());
-  vm.exec("git switch -c feature");
-  write(vm, "feat.txt", "f\n");
-  vm.exec("git add feat.txt");
-  vm.exec('git commit -m "on feature"');
+  vm.branch("feature").file("feat.txt", "f\n").stage("feat.txt").commit(
+    "on feature",
+  );
   const featureTip = wt(vm).head!;
-  vm.exec("git switch main");
-  write(vm, "main.txt", "m\n");
-  vm.exec("git add main.txt");
-  vm.exec('git commit -m "on main"');
+  vm.onto("main").file("main.txt", "m\n").stage("main.txt").commit("on main");
   const onlyFeature = vm.exec("git log --oneline main..feature");
   assert(onlyFeature.ok, onlyFeature.stderr);
   assert(onlyFeature.stdout.includes("on feature"));
@@ -57,14 +44,9 @@ Deno.test("git log A..B is reachable from B excluding A", () => {
 
 Deno.test("git log A...B is the symmetric difference", () => {
   const vm = new GitVM(seededLocalFromOrigin());
-  vm.exec("git switch -c feature");
-  write(vm, "feat.txt", "f\n");
-  vm.exec("git add feat.txt");
-  vm.exec('git commit -m "on feature"');
-  vm.exec("git switch main");
-  write(vm, "main.txt", "m\n");
-  vm.exec("git add main.txt");
-  vm.exec('git commit -m "on main"');
+  vm.branch("feature").file("feat.txt", "f\n").stage("feat.txt").commit(
+    "on feature",
+  ).onto("main").file("main.txt", "m\n").stage("main.txt").commit("on main");
   const r = vm.exec("git log --oneline main...feature");
   assert(r.ok, r.stderr);
   assert(r.stdout.includes("on feature"));
