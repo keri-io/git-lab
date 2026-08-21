@@ -1,11 +1,12 @@
 import {
-  BADGE_H,
   Badge,
+  BADGE_H,
   BandLabel,
   Edge,
   EdgeLabel,
   IllustrationFrame,
   Obj,
+  objChainRow,
   PathEdge,
 } from "./primitives.tsx";
 
@@ -34,15 +35,16 @@ export function AmendIllustration() {
       <BandLabel x={478} y={18} text="BLOBS" />
 
       <Badge x={36} y={row1Y - BADGE_H - 2} text="main" />
-      <Obj
-        x={commitX}
-        y={row1Y}
-        kind="commit"
-        hash="b8f21a"
-        body="amended"
-      />
-      <Obj x={treeX} y={row1Y} kind="tree" hash="9e3c10" body="root" />
-      <Obj x={blobX} y={row1Y} kind="blob" hash="e11a02" body='"forgot"' />
+      {objChainRow({
+        y: row1Y,
+        commitX,
+        treeX,
+        blobX,
+        markerId: M,
+        commit: { hash: "b8f21a", body: "amended" },
+        tree: { hash: "9e3c10", body: "root" },
+        blob: { hash: "e11a02", body: '"forgot"' },
+      })}
 
       <Badge
         x={36}
@@ -80,26 +82,12 @@ export function AmendIllustration() {
 
       <Edge
         x1={commitX + commitW}
-        y1={row1Y + objH / 2}
-        x2={treeX}
-        y2={row1Y + objH / 2}
-        markerId={M}
-      />
-      <Edge
-        x1={commitX + commitW}
         y1={row2Y + objH / 2}
         x2={treeX}
         y2={row2Y + objH / 2}
         markerId={M}
       />
 
-      <Edge
-        x1={treeX + treeW}
-        y1={row1Y + objH / 2}
-        x2={blobX}
-        y2={row1Y + objH / 2}
-        markerId={M}
-      />
       <EdgeLabel
         x={(treeX + treeW + blobX) / 2}
         y={row1Y + objH / 2 - 14}
@@ -113,9 +101,9 @@ export function AmendIllustration() {
         markerId={M}
       />
       <PathEdge
-        d={`M ${treeX + treeW} ${row2Y + objH / 2} C 400 210, 440 270, ${blobX} ${
-          row3Y + objH / 2
-        }`}
+        d={`M ${treeX + treeW} ${
+          row2Y + objH / 2
+        } C 400 210, 440 270, ${blobX} ${row3Y + objH / 2}`}
         markerId={M}
       />
       <EdgeLabel

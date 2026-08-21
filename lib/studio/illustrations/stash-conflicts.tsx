@@ -1,10 +1,9 @@
 import {
   Badge,
   Box,
-  Edge,
   EdgeLabel,
   IllustrationFrame,
-  Obj,
+  objChainRow,
   PathEdge,
 } from "./primitives.tsx";
 
@@ -20,30 +19,26 @@ export function StashConflictsIllustration() {
     >
       <Badge x={24} y={12} text="stash" fill="var(--lg-stash)" />
 
-      <Obj x={24} y={40} kind="commit" hash="s0w001" body="W" />
-      <Obj x={24} y={160} kind="commit" hash="c1a009" body="HEAD" />
-
-      <Obj x={200} y={40} kind="tree" hash="s0t003" body="root" />
-      <Obj x={200} y={160} kind="tree" hash="c1t010" body="root" />
-      <Edge x1={132} y1={65} x2={200} y2={65} markerId={C} />
-      <Edge x1={132} y1={185} x2={200} y2={185} markerId={C} />
-
-      <Obj
-        x={392}
-        y={40}
-        kind="blob"
-        hash="s0b004"
-        body='"from stash"'
-      />
-      <Obj
-        x={392}
-        y={160}
-        kind="blob"
-        hash="c1b011"
-        body='"from main"'
-      />
-      <Edge x1={308} y1={65} x2={392} y2={65} markerId={C} />
-      <Edge x1={308} y1={185} x2={392} y2={185} markerId={C} />
+      {objChainRow({
+        y: 40,
+        commitX: 24,
+        treeX: 200,
+        blobX: 392,
+        markerId: C,
+        commit: { hash: "s0w001", body: "W" },
+        tree: { hash: "s0t003", body: "root" },
+        blob: { hash: "s0b004", body: '"from stash"' },
+      })}
+      {objChainRow({
+        y: 160,
+        commitX: 24,
+        treeX: 200,
+        blobX: 392,
+        markerId: C,
+        commit: { hash: "c1a009", body: "HEAD" },
+        tree: { hash: "c1t010", body: "root" },
+        blob: { hash: "c1b011", body: '"from main"' },
+      })}
       <EdgeLabel x={350} y={52} text="README.md" />
       <EdgeLabel x={350} y={172} text="README.md" />
 

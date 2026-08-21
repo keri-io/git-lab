@@ -1,11 +1,12 @@
 import {
-  BADGE_H,
   Badge,
+  BADGE_H,
   BandLabel,
   Edge,
   EdgeLabel,
   IllustrationFrame,
   Obj,
+  objChainRow,
   PathEdge,
 } from "./primitives.tsx";
 
@@ -57,15 +58,16 @@ export function GcIllustration() {
       />
 
       <Badge x={commitX} y={row2Y - BADGE_H - 2} text="main" />
-      <Obj
-        x={commitX}
-        y={row2Y}
-        kind="commit"
-        hash="a1b003"
-        body="initial"
-      />
-      <Obj x={treeX} y={row2Y} kind="tree" hash="d8329f" body="root" />
-      <Obj x={blobX} y={row2Y} kind="blob" hash="d67046" body='"# demo"' />
+      {objChainRow({
+        y: row2Y,
+        commitX,
+        treeX,
+        blobX,
+        markerId: M,
+        commit: { hash: "a1b003", body: "initial" },
+        tree: { hash: "d8329f", body: "root" },
+        blob: { hash: "d67046", body: '"# demo"' },
+      })}
 
       <PathEdge
         d={`M ${commitX + commitW} ${row1Y + objH / 2} C 190 ${
@@ -99,14 +101,6 @@ export function GcIllustration() {
         dashed
       />
       <Edge
-        x1={commitX + commitW}
-        y1={row2Y + objH / 2}
-        x2={treeX}
-        y2={row2Y + objH / 2}
-        markerId={M}
-      />
-
-      <Edge
         x1={treeX + treeW}
         y1={row1Y + objH / 2}
         x2={blobX}
@@ -120,13 +114,6 @@ export function GcIllustration() {
         text="NOTES.md"
       />
 
-      <Edge
-        x1={treeX + treeW}
-        y1={row2Y + objH / 2}
-        x2={blobX}
-        y2={row2Y + objH / 2}
-        markerId={M}
-      />
       <EdgeLabel
         x={(treeX + treeW + blobX) / 2}
         y={row2Y + objH / 2 - 14}
