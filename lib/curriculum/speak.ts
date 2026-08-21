@@ -177,7 +177,7 @@ export class LessonTalk {
   }
 }
 
-/** Start a lesson sentence: speak("tags", "Tags: …").after("model") */
+/** Start a lesson sentence: speak("index", "The index: …").after("model") */
 export function speak(id: LessonId, title?: string): LessonTalk {
   const talk = new LessonTalk(id);
   if (title !== undefined) talk.title(title);

@@ -14,9 +14,9 @@ The learner types `git …`. Authors seed a lesson with `speak().build()`, a fix
 
 ## Lesson chain
 
-Twenty-three lessons, one unlock at a time. Internals (tags, index, packs, reftable, rerere, gc) sit where later commands need them — not in a dump at the end.
+Twenty-three lessons, one unlock at a time. The command spine is the proficiency-guide DAG: **clone then fetch**, **merge then pull then fork**. Internals sit beside the picture they explain — packs and reftable after fetch, rerere after you have merged three ways, tags just before GitFlow names a release.
 
-![Lesson chain in proficiency-guide order: model, network, integrate, rewrite, park, shape](docs/curriculum.svg)
+![Lesson chain: model, network, integrate, rewrite, park, shape -- clone then fetch, merge then pull](docs/curriculum.svg)
 
 Later verbs are earlier primitives glued together: **pull** is fetch then merge, **rebase** is reset then cherry-pick in a loop, **stash** is real commits (W with parents H and I), **worktrees** are extra checkouts of the same object database. GitFlow and trunk add no new engine — they are graph taste.
 

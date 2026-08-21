@@ -44,16 +44,15 @@ export interface Lesson {
 
 export const LESSON_ORDER = [
   "model",
-  "tags",
   "index",
   "clone",
+  "fetch",
   "packs",
   "reftable",
-  "fetch",
   "merge",
-  "rerere",
   "pull",
   "fork",
+  "rerere",
   "amend",
   "reset",
   "cherry-pick",
@@ -64,6 +63,7 @@ export const LESSON_ORDER = [
   "stash",
   "stash-conflicts",
   "worktrees",
+  "tags",
   "gitflow",
   "trunk",
 ] as const;
