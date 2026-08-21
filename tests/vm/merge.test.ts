@@ -22,12 +22,10 @@ function commitOf(vm: GitVM, id: string): CommitObject {
 
 function divergeFeature(vm: GitVM) {
   const base = wt(vm).head!;
-  vm.exec("git switch -c feature");
-  write(vm, "README.md", "feature edition\n");
-  vm.exec("git add README.md");
-  vm.exec('git commit -m "on feature"');
+  vm.branch("feature").file("README.md", "feature edition\n").stage("README.md")
+    .commit("on feature");
   const featureTip = wt(vm).head!;
-  vm.exec("git switch main");
+  vm.onto("main");
   return { base, featureTip };
 }
 
@@ -95,14 +93,11 @@ Deno.test("overlapping edits conflict with index stages 1/2/3; git add collapses
 
 function conflictedVm(): GitVM {
   const vm = new GitVM(seededLocalFromOrigin());
-  vm.exec("git switch -c feature");
-  write(vm, "README.md", "feature edition\n");
-  vm.exec("git add README.md");
-  vm.exec('git commit -m "on feature"');
-  vm.exec("git switch main");
-  write(vm, "README.md", "main edition\n");
-  vm.exec("git add README.md");
-  vm.exec('git commit -m "on main"');
+  vm.branch("feature").file("README.md", "feature edition\n").stage("README.md")
+    .commit("on feature")
+    .onto("main").file("README.md", "main edition\n").stage("README.md").commit(
+      "on main",
+    );
   const r = vm.exec("git merge feature");
   assertEquals(r.ok, false);
   assert(r.events.some((e) => e.type === "index-stages"));

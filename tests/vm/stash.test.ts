@@ -43,9 +43,9 @@ Deno.test("stash pop with conflict does not drop the stash; git stash drop remov
   write(vm, "README.md", "stashed edition\n");
   vm.exec("git stash push");
   assertEquals(vm.state.stash.length, 1);
-  write(vm, "README.md", "committed edition\n");
-  vm.exec("git add README.md");
-  vm.exec('git commit -m "moved on"');
+  vm.file("README.md", "committed edition\n").stage("README.md").commit(
+    "moved on",
+  );
   const pop = vm.exec("git stash pop");
   assertEquals(pop.ok, false);
   assertEquals(vm.state.conflicted, true);
