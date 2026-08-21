@@ -1,0 +1,85 @@
+{
+  "branch": "main",
+  "commits": [
+    {
+      "dangling": false,
+      "id": "3812cf496400317a0f8c66e0e815ac0b67dfbf0c",
+      "message": "index on main: wip",
+      "parents": [
+        "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+      ]
+    },
+    {
+      "dangling": false,
+      "id": "8af4232952d804a1cddd0c4a8695096d2ac99378",
+      "message": "WIP on main: wip",
+      "parents": [
+        "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046",
+        "3812cf496400317a0f8c66e0e815ac0b67dfbf0c"
+      ]
+    },
+    {
+      "dangling": false,
+      "id": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046",
+      "message": "initial",
+      "parents": []
+    }
+  ],
+  "conflicted": false,
+  "files": {
+    "README.md": "# demo\n"
+  },
+  "head": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046",
+  "index": [
+    {
+      "blob": "09c54f8694ef82baecf6170e02ffd37f5fbf9ed2",
+      "path": "README.md",
+      "stage": 0
+    }
+  ],
+  "refs": [
+    {
+      "kind": "head",
+      "name": "HEAD",
+      "target": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+    },
+    {
+      "kind": "branch",
+      "name": "refs/heads/main",
+      "target": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+    },
+    {
+      "kind": "remote",
+      "name": "refs/remotes/origin/main",
+      "target": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+    },
+    {
+      "kind": "stash",
+      "name": "refs/stash",
+      "target": "8af4232952d804a1cddd0c4a8695096d2ac99378"
+    },
+    {
+      "kind": "stash",
+      "name": "stash@{0}",
+      "target": "8af4232952d804a1cddd0c4a8695096d2ac99378"
+    }
+  ],
+  "threeTrees": {
+    "head": [
+      "README.md"
+    ],
+    "index": [
+      "README.md"
+    ],
+    "worktree": [
+      "README.md"
+    ]
+  },
+  "worktrees": [
+    {
+      "branch": "main",
+      "id": "main",
+      "path": "."
+    }
+  ]
+}

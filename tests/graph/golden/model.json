@@ -1,0 +1,53 @@
+{
+  "branch": "main",
+  "commits": [
+    {
+      "dangling": false,
+      "id": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046",
+      "message": "initial",
+      "parents": []
+    }
+  ],
+  "conflicted": false,
+  "files": {
+    "README.md": "# demo\n"
+  },
+  "head": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046",
+  "index": [
+    {
+      "blob": "09c54f8694ef82baecf6170e02ffd37f5fbf9ed2",
+      "path": "README.md",
+      "stage": 0
+    }
+  ],
+  "refs": [
+    {
+      "kind": "head",
+      "name": "HEAD",
+      "target": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+    },
+    {
+      "kind": "branch",
+      "name": "refs/heads/main",
+      "target": "fc9eb5d75ed6721b779bfd8aa2dab23bec68a046"
+    }
+  ],
+  "threeTrees": {
+    "head": [
+      "README.md"
+    ],
+    "index": [
+      "README.md"
+    ],
+    "worktree": [
+      "README.md"
+    ]
+  },
+  "worktrees": [
+    {
+      "branch": "main",
+      "id": "main",
+      "path": "."
+    }
+  ]
+}

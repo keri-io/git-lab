@@ -1,0 +1,498 @@
+@import "tailwindcss";
+
+:root {
+  --lg-bg: #eff1f5;
+  --lg-surface: #e6e9ef;
+  --lg-text: #4c4f69;
+  --lg-muted: #6c6f85;
+  --lg-border: #ccd0da;
+  --lg-accent: #1e66f5;
+  --lg-accent-fg: #eff1f5;
+  --lg-radius: 12px;
+  --lg-shadow: 0 1px 2px rgb(76 79 105 / 0.08), 0 4px 12px rgb(76 79 105 / 0.08);
+  --lg-code-bg: #dce0e8;
+  --lg-warn: #df8e1b;
+  --lg-warn-border: #fe640b;
+  --lg-warn-bg: #ccd0da;
+  --lg-stash: #8839ef;
+  --lg-success: #40a02b;
+  --lg-success-bg: #dce0e8;
+  --lg-graph-canvas: #eff1f5;
+  --lg-term-bg: #1e1e2e;
+  --lg-sky: #04a5e5;
+  --lg-term-scrollbar: #9ca0b0;
+  --lg-obj-commit: #df8e1b;
+  --lg-obj-tree: #179299;
+  --lg-obj-blob: #fe640b;
+  --lg-obj-tag: #ea76cb;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lg-bg: #1e1e2e;
+    --lg-surface: #181825;
+    --lg-text: #cdd6f4;
+    --lg-muted: #a6adc8;
+    --lg-border: #313244;
+    --lg-accent: #89b4fa;
+    --lg-accent-fg: #11111b;
+    --lg-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    --lg-code-bg: #11111b;
+    --lg-warn: #f9e2af;
+    --lg-warn-border: #fab387;
+    --lg-warn-bg: #313244;
+    --lg-stash: #cba6f7;
+    --lg-success: #a6e3a1;
+    --lg-success-bg: #313244;
+    --lg-graph-canvas: #1e1e2e;
+    --lg-term-bg: #11111b;
+    --lg-sky: #89dceb;
+    --lg-term-scrollbar: #6c7086;
+    --lg-obj-commit: #f9e2af;
+    --lg-obj-tree: #94e2d5;
+    --lg-obj-blob: #fab387;
+    --lg-obj-tag: #f5c2e7;
+    color-scheme: dark;
+  }
+}
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--lg-bg);
+  color: var(--lg-text);
+  min-height: 100%;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark !important;
+  }
+}
+
+.lg-card {
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius);
+  box-shadow: var(--lg-shadow);
+}
+
+.lg-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lg-muted);
+  border: 1px solid var(--lg-border);
+  border-radius: 9999px;
+  padding: 0.15rem 0.5rem;
+  background: var(--lg-surface);
+}
+
+.lg-link {
+  color: var(--lg-accent);
+}
+
+.git-graph-canvas {
+  min-height: 280px;
+}
+
+.lg-graph {
+  display: flex;
+  flex-direction: column;
+  min-height: 17.5rem;
+}
+
+.lg-graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--lg-border);
+  background: var(--lg-surface);
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.lg-graph-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.lg-graph-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--lg-text);
+  border: 1px solid var(--lg-border);
+  border-radius: 9999px;
+  padding: 0.15rem 0.55rem;
+  background: var(--lg-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lg-graph-chip:hover,
+.lg-graph-chip:focus-visible {
+  border-color: var(--lg-accent);
+  outline: none;
+}
+
+.lg-graph-chip--current {
+  border-color: var(--lg-accent);
+  color: var(--lg-accent);
+}
+
+.lg-graph-chip--on {
+  background: var(--lg-accent);
+  color: var(--lg-accent-fg);
+  border-color: var(--lg-accent);
+}
+
+.lg-graph-zoom {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.lg-graph-zoom button {
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--lg-border);
+  border-radius: 0.4rem;
+  background: var(--lg-bg);
+  color: var(--lg-text);
+  font-size: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lg-graph-zoom button:hover,
+.lg-graph-zoom button:focus-visible {
+  border-color: var(--lg-accent);
+  outline: none;
+}
+
+.lg-graph-stage {
+  display: grid;
+  grid-template-columns: 1fr;
+  position: relative;
+}
+
+.lg-graph-stage > * {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.lg-graph-viewport {
+  overflow: visible;
+  min-height: 12rem;
+}
+
+.lg-graph-svg {
+  display: block;
+}
+
+.lg-graph-inspect-slot {
+  justify-self: end;
+  align-self: stretch;
+  width: 16.5rem;
+  max-width: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lg-graph-inspect {
+  position: sticky;
+  top: 0.5rem;
+  margin: 0.5rem;
+  pointer-events: auto;
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius);
+  box-shadow: var(--lg-shadow);
+  padding: 0.75rem;
+}
+
+.lg-graph-inspect-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lg-graph-inspect-head button {
+  font-size: 12px;
+  border: 1px solid var(--lg-border);
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+  background: var(--lg-bg);
+  color: var(--lg-text);
+  cursor: pointer;
+}
+
+.lg-graph-inspect-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  word-break: break-all;
+  color: var(--lg-muted);
+  margin: 0 0 0.4rem;
+}
+
+.lg-graph-inspect-msg {
+  font-size: 13px;
+  margin: 0 0 0.4rem;
+  white-space: pre-wrap;
+}
+
+.lg-graph-inspect-parents {
+  font-size: 12px;
+  color: var(--lg-muted);
+  margin: 0 0 0.5rem;
+}
+
+.lg-graph-inspect-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.lg-graph-inspect-muted {
+  font-size: 12px;
+  color: var(--lg-muted);
+}
+
+.lg-graph-inspect-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lg-graph-inspect-flags li {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lg-accent);
+  border: 1px solid var(--lg-border);
+  border-radius: 9999px;
+  padding: 0.1rem 0.45rem;
+}
+
+.lg-graph-commit {
+  cursor: pointer;
+}
+
+.lg-graph-commit:focus {
+  outline: none;
+}
+
+.lg-graph-commit:focus-visible .lg-graph-dot,
+.lg-graph-commit--selected .lg-graph-dot {
+  stroke: var(--lg-text);
+  stroke-width: 2.5px;
+}
+
+.lg-graph-dim {
+  opacity: 0.18;
+}
+
+.lg-graph-vis-host {
+  min-height: 16rem;
+  height: 22rem;
+}
+
+.lg-graph-head-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lg-graph-halo-pulse 2.2s ease-in-out infinite;
+}
+
+.lg-graph--reduce-motion .lg-graph-head-halo {
+  animation: none;
+}
+
+@keyframes lg-graph-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-graph-head-halo {
+    animation: none;
+  }
+}
+
+.xterm-host {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 180ms ease;
+}
+
+.xterm-host:hover,
+.xterm-host:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--lg-muted) 40%, transparent) transparent;
+}
+
+.xterm-host .xterm {
+  height: 100%;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent !important;
+}
+
+.xterm-host .xterm-viewport {
+  border: 0;
+  background: transparent !important;
+  overflow: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 180ms ease;
+}
+
+.xterm-host:hover .xterm-viewport,
+.xterm-host:focus-within .xterm-viewport {
+  scrollbar-color: color-mix(in srgb, var(--lg-muted) 40%, transparent) transparent;
+}
+
+.xterm-host::-webkit-scrollbar,
+.xterm-host .xterm-viewport::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.xterm-host::-webkit-scrollbar-track,
+.xterm-host .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.xterm-host::-webkit-scrollbar-thumb,
+.xterm-host .xterm-viewport::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 8px;
+  opacity: 0;
+  transition: background-color 180ms ease, opacity 180ms ease;
+}
+
+.xterm-host:hover::-webkit-scrollbar-thumb,
+.xterm-host:focus-within::-webkit-scrollbar-thumb,
+.xterm-host:hover .xterm-viewport::-webkit-scrollbar-thumb,
+.xterm-host:focus-within .xterm-viewport::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--lg-term-scrollbar) 40%, transparent);
+  opacity: 1;
+}
+
+.xterm-host::-webkit-scrollbar-button,
+.xterm-host .xterm-viewport::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.xterm-host::-webkit-scrollbar-corner,
+.xterm-host .xterm-viewport::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xterm-host,
+  .xterm-host .xterm-viewport,
+  .xterm-host::-webkit-scrollbar-thumb,
+  .xterm-host .xterm-viewport::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}
+
+.lesson-narrative :where(p, ul, ol) {
+  margin-bottom: 0.75rem;
+}
+
+.lesson-narrative :where(ul, ol) {
+  padding-left: 1.25rem;
+}
+
+.lesson-narrative ul {
+  list-style: disc;
+}
+
+.lesson-narrative a {
+  color: var(--lg-accent);
+  text-decoration: underline;
+}
+
+.lesson-narrative code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--lg-code-bg);
+  color: var(--lg-text);
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  border: 1px solid var(--lg-border);
+}
+
+.lesson-narrative pre {
+  background: var(--lg-code-bg);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius);
+  color: var(--lg-text);
+}
+
+.lesson-narrative pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.lesson-narrative strong {
+  color: var(--lg-text);
+}
+
+.three-trees.viz-pulse .lg-card {
+  animation: gitlab-tree-pulse 700ms ease-out;
+}
+
+@keyframes gitlab-tree-pulse {
+  from {
+    box-shadow: 0 0 0 2px var(--lg-accent);
+  }
+  to {
+    box-shadow: var(--lg-shadow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .three-trees.viz-pulse .lg-card {
+    animation: none;
+  }
+}
