@@ -10,6 +10,20 @@ The learner still types real Git: `GitVM.exec("git …")` is the teaching CLI.
 
 ## Run locally
 
+The CLI binary is named **`deno`** (Deno). It is not `demo`.
+
+1. Install Deno if `deno --version` fails
+   ([docs](https://docs.deno.com/runtime/getting_started/installation/)):
+
+```bash
+curl -fsSL https://deno.land/install.sh | sh
+```
+
+macOS with Homebrew: `brew install deno`. Then open a new terminal so `PATH`
+includes `~/.deno/bin`.
+
+2. Install this repo’s npm packages, then start Vite:
+
 ```bash
 cd ~/Projects/git-lab
 git pull
@@ -20,7 +34,8 @@ deno task dev
 Open the URL Vite prints (usually http://localhost:5173).
 
 `deno.json` sets `"nodeModulesDir": "manual"`, so `deno install` writes
-`node_modules` for Preact, xterm, vis-network, and the other npm imports.
+`node_modules` for Preact, xterm, vis-network, and the other npm imports. That
+command only works after the `deno` binary is on your `PATH`.
 
 ```bash
 deno task test
