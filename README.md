@@ -44,8 +44,6 @@ deno task test
 `deno task check` also runs `deno fmt --check` on the whole tree. Some older CSS
 is not formatted; use `deno task test` for a green suite.
 
-Curriculum source: `~/Downloads/Git Proficiency Guide.md`. No YouTube embeds.
-
 ## Source that should read as a sentence
 
 | Who                   | API                                                                            | Where                                |
