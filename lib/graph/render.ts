@@ -14,6 +14,7 @@ import {
   visWorktreeDiamonds,
 } from "./policy.ts";
 import { stashHiwFromSnapshot, stashRole } from "./stash_hiw.ts";
+import { topoSortCommits } from "./topo.ts";
 
 export type { GraphViewOptions } from "./interactive_svg.ts";
 export { needsVisOverlay, visBareHeadLabel, visWorktreeDiamonds };
@@ -40,28 +41,6 @@ const visByContainer = new WeakMap<HTMLElement, Network>();
 const WT_LABEL = "#eff1f5";
 /** Mocha text — readable on dark `--lg-term-bg` / crust fill. */
 const BARE_LABEL = "#cdd6f4";
-
-function topoSort(snapshot: Snapshot) {
-  const commits = snapshot.commits;
-  const byId = new Map(commits.map((c) => [c.id, c]));
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const out: typeof commits = [];
-
-  const visit = (id: string) => {
-    if (visited.has(id) || visiting.has(id)) return;
-    const commit = byId.get(id);
-    if (!commit) return;
-    visiting.add(id);
-    for (const parent of commit.parents) visit(parent);
-    visiting.delete(id);
-    visited.add(id);
-    out.push(commit);
-  };
-
-  for (const commit of commits) visit(commit.id);
-  return out;
-}
 
 function renderEmpty(container: HTMLElement): void {
   const empty = document.createElement("p");
@@ -261,7 +240,7 @@ function pickVis(mod: unknown): VisStandalone {
 
 function renderSimpleSvg(container: HTMLElement, snapshot: Snapshot): void {
   const colors = readGraphTheme(container);
-  const ordered = topoSort(snapshot);
+  const ordered = topoSortCommits(snapshot.commits);
   const newestFirst = [...ordered].reverse();
   const rowH = 56;
   const left = 36;

@@ -1,9 +1,7 @@
 import type { GraphCommit, Snapshot } from "../git-vm/types.ts";
 import { stashHiwFromSnapshot, stashRole } from "./stash_hiw.ts";
-import {
-  visBareHeadLabel,
-  visWorktreeDiamonds,
-} from "./policy.ts";
+import { visBareHeadLabel, visWorktreeDiamonds } from "./policy.ts";
+import { topoSortCommits } from "./topo.ts";
 
 export function prettyRef(name: string): string {
   return name
@@ -54,27 +52,6 @@ export interface CommitLayout {
   rowCount: number;
   branchHeads: Record<string, string>;
   currentBranch: string | null;
-}
-
-function topoSort(commits: GraphCommit[]): GraphCommit[] {
-  const byId = new Map(commits.map((c) => [c.id, c]));
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
-  const out: GraphCommit[] = [];
-
-  const visit = (id: string) => {
-    if (visited.has(id) || visiting.has(id)) return;
-    const commit = byId.get(id);
-    if (!commit) return;
-    visiting.add(id);
-    for (const parent of commit.parents) visit(parent);
-    visiting.delete(id);
-    visited.add(id);
-    out.push(commit);
-  };
-
-  for (const commit of commits) visit(commit.id);
-  return out;
 }
 
 function assignColumns(newestFirst: GraphCommit[]): Map<string, number> {
@@ -134,7 +111,7 @@ export function ancestorSet(
 
 export function layoutCommitGraph(snapshot: Snapshot): CommitLayout {
   const hiw = stashHiwFromSnapshot(snapshot);
-  const topo = topoSort(snapshot.commits);
+  const topo = topoSortCommits(snapshot.commits);
   const newestFirst = [...topo].reverse();
   const columns = assignColumns(newestFirst);
   const rowOf = new Map(newestFirst.map((c, i) => [c.id, i]));
