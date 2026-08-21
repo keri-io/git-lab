@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-labelledby="curr-title curr-desc">
+  <title id="curr-title">Git Lab lesson chain</title>
+  <desc id="curr-desc">
+    Twenty-three lessons in proficiency-guide order. Each node unlocks the next.
+    Internals (tags, index, packs, reftable, rerere, gc) sit where later commands need them.
+    Later verbs reuse earlier primitives: pull is fetch plus merge; rebase is reset plus cherry-pick.
+  </desc>
+  <defs>
+    <marker id="c-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path class="arr" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+    <style>
+      .bg { fill: #eff1f5; }
+      .surface { fill: #e6e9ef; }
+      .text { fill: #4c4f69; }
+      .muted { fill: #6c6f85; }
+      .stroke { stroke: #ccd0da; }
+      .arr { fill: #6c6f85; }
+      .edge { stroke: #6c6f85; }
+      .spine { stroke: #ccd0da; }
+      .model { fill: #179299; }
+      .network { fill: #1e66f5; }
+      .integrate { fill: #fe640b; }
+      .rewrite { fill: #df8e1b; }
+      .park { fill: #8839ef; }
+      .shape { fill: #40a02b; }
+      .chip { fill: #e6e9ef; }
+      text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      @media (prefers-color-scheme: dark) {
+        .bg { fill: #1e1e2e; }
+        .surface { fill: #181825; }
+        .text { fill: #cdd6f4; }
+        .muted { fill: #a6adc8; }
+        .stroke { stroke: #313244; }
+        .arr { fill: #a6adc8; }
+        .edge { stroke: #a6adc8; }
+        .spine { stroke: #313244; }
+        .model { fill: #94e2d5; }
+        .network { fill: #89b4fa; }
+        .integrate { fill: #fab387; }
+        .rewrite { fill: #f9e2af; }
+        .park { fill: #cba6f7; }
+        .shape { fill: #a6e3a1; }
+        .chip { fill: #181825; }
+      }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="720" rx="16"/>
+
+  <text class="text" x="28" y="36" font-size="20" font-weight="700">Lesson chain</text>
+  <text class="muted" x="28" y="56" font-size="12">Same order as the proficiency guide. Each command reuses the primitives to its left. Skip ahead only if that node is already solid.</text>
+
+  <line class="spine" x1="40" y1="96" x2="40" y2="668" stroke-width="4" stroke-linecap="round"/>
+
+  <circle class="model" cx="40" cy="108" r="8"/>
+  <text class="model" x="60" y="102" font-size="10" font-weight="700" letter-spacing="1.6">MODEL</text>
+  <text class="muted" x="60" y="116" font-size="10">objects + three trees + moving labels</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="128" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="model" x="76" y="144" font-size="9" font-weight="700">01</text>
+    <text class="text" x="76" y="158" font-size="12" font-weight="600">model</text>
+  </g>
+  <line class="edge" x1="192" y1="148" x2="212" y2="148" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="216" y="128" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="model" x="232" y="144" font-size="9" font-weight="700">02</text>
+    <text class="text" x="232" y="158" font-size="12" font-weight="600">tags</text>
+  </g>
+  <line class="edge" x1="348" y1="148" x2="368" y2="148" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="372" y="128" width="148" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="model" x="388" y="144" font-size="9" font-weight="700">03</text>
+    <text class="text" x="388" y="158" font-size="12" font-weight="600">index</text>
+  </g>
+  <text class="muted" x="540" y="152" font-size="10">blob &lt;- add   tree &lt;- commit   branch = a pointer</text>
+
+  <circle class="network" cx="40" cy="204" r="8"/>
+  <text class="network" x="60" y="198" font-size="10" font-weight="700" letter-spacing="1.6">NETWORK</text>
+  <text class="muted" x="60" y="212" font-size="10">clone is init + fetch + checkout. Fetch only grows the store.</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="224" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="network" x="76" y="240" font-size="9" font-weight="700">04</text>
+    <text class="text" x="76" y="254" font-size="12" font-weight="600">clone</text>
+  </g>
+  <line class="edge" x1="180" y1="244" x2="200" y2="244" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="204" y="224" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="network" x="220" y="240" font-size="9" font-weight="700">05</text>
+    <text class="text" x="220" y="254" font-size="12" font-weight="600">packs</text>
+  </g>
+  <line class="edge" x1="324" y1="244" x2="344" y2="244" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="348" y="224" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="network" x="364" y="240" font-size="9" font-weight="700">06</text>
+    <text class="text" x="364" y="254" font-size="12" font-weight="600">reftable</text>
+  </g>
+  <line class="edge" x1="480" y1="244" x2="500" y2="244" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="504" y="224" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="network" x="520" y="240" font-size="9" font-weight="700">07</text>
+    <text class="text" x="520" y="254" font-size="12" font-weight="600">fetch</text>
+  </g>
+  <text class="muted" x="644" y="248" font-size="10">origin/main is a local sticky note</text>
+
+  <circle class="integrate" cx="40" cy="300" r="8"/>
+  <text class="integrate" x="60" y="294" font-size="10" font-weight="700" letter-spacing="1.6">INTEGRATE</text>
+  <text class="muted" x="60" y="308" font-size="10">Merge writes a two-parent commit, or fast-forwards the label.</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="320" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="integrate" x="76" y="336" font-size="9" font-weight="700">08</text>
+    <text class="text" x="76" y="350" font-size="12" font-weight="600">merge</text>
+  </g>
+  <line class="edge" x1="180" y1="340" x2="200" y2="340" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="204" y="320" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="integrate" x="220" y="336" font-size="9" font-weight="700">09</text>
+    <text class="text" x="220" y="350" font-size="12" font-weight="600">rerere</text>
+  </g>
+  <line class="edge" x1="324" y1="340" x2="344" y2="340" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="348" y="320" width="148" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="integrate" x="364" y="336" font-size="9" font-weight="700">10</text>
+    <text class="text" x="364" y="350" font-size="12" font-weight="600">pull = fetch+merge</text>
+  </g>
+  <line class="edge" x1="496" y1="340" x2="516" y2="340" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="520" y="320" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="integrate" x="536" y="336" font-size="9" font-weight="700">11</text>
+    <text class="text" x="536" y="350" font-size="12" font-weight="600">fork</text>
+  </g>
+  <text class="muted" x="672" y="344" font-size="10">second remote, not a Git verb</text>
+
+  <circle class="rewrite" cx="40" cy="396" r="8"/>
+  <text class="rewrite" x="60" y="390" font-size="10" font-weight="700" letter-spacing="1.6">REWRITE</text>
+  <text class="muted" x="60" y="404" font-size="10">Objects never change. New hashes, labels move. Reflog still has the old tip.</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="416" width="108" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="76" y="432" font-size="9" font-weight="700">12</text>
+    <text class="text" x="76" y="446" font-size="12" font-weight="600">amend</text>
+  </g>
+  <line class="edge" x1="168" y1="436" x2="184" y2="436" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="188" y="416" width="108" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="204" y="432" font-size="9" font-weight="700">13</text>
+    <text class="text" x="204" y="446" font-size="12" font-weight="600">reset</text>
+  </g>
+  <line class="edge" x1="296" y1="436" x2="312" y2="436" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="316" y="416" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="332" y="432" font-size="9" font-weight="700">14</text>
+    <text class="text" x="332" y="446" font-size="12" font-weight="600">cherry-pick</text>
+  </g>
+  <line class="edge" x1="448" y1="436" x2="464" y2="436" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="468" y="416" width="168" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="484" y="432" font-size="9" font-weight="700">15</text>
+    <text class="text" x="484" y="446" font-size="12" font-weight="600">rebase = pick loop</text>
+  </g>
+  <line class="edge" x1="636" y1="436" x2="652" y2="436" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="656" y="416" width="108" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="672" y="432" font-size="9" font-weight="700">16</text>
+    <text class="text" x="672" y="446" font-size="12" font-weight="600">--onto</text>
+  </g>
+  <line class="edge" x1="764" y1="436" x2="780" y2="436" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="784" y="416" width="108" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="800" y="432" font-size="9" font-weight="700">17</text>
+    <text class="text" x="800" y="446" font-size="12" font-weight="600">rewrite</text>
+  </g>
+  <path class="edge" d="M838 456 V492 H176" fill="none" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="60" y="472" width="108" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="rewrite" x="76" y="488" font-size="9" font-weight="700">18</text>
+    <text class="text" x="76" y="502" font-size="12" font-weight="600">gc</text>
+  </g>
+  <text class="muted" x="184" y="496" font-size="10">dangling objects stay until gc -- reflog is the undo log</text>
+
+  <circle class="park" cx="40" cy="552" r="8"/>
+  <text class="park" x="60" y="546" font-size="10" font-weight="700" letter-spacing="1.6">PARK</text>
+  <text class="muted" x="60" y="560" font-size="10">Stash writes real commits (W with parents H and I), then resets the worktree.</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="572" width="120" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="park" x="76" y="588" font-size="9" font-weight="700">19</text>
+    <text class="text" x="76" y="602" font-size="12" font-weight="600">stash</text>
+  </g>
+  <line class="edge" x1="180" y1="592" x2="200" y2="592" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="204" y="572" width="168" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="park" x="220" y="588" font-size="9" font-weight="700">20</text>
+    <text class="text" x="220" y="602" font-size="12" font-weight="600">stash conflicts</text>
+  </g>
+  <line class="edge" x1="372" y1="592" x2="392" y2="592" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="396" y="572" width="148" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="park" x="412" y="588" font-size="9" font-weight="700">21</text>
+    <text class="text" x="412" y="602" font-size="12" font-weight="600">worktrees</text>
+  </g>
+  <text class="muted" x="564" y="596" font-size="10">two checkouts, one object database</text>
+
+  <circle class="shape" cx="40" cy="648" r="8"/>
+  <text class="shape" x="60" y="642" font-size="10" font-weight="700" letter-spacing="1.6">SHAPE</text>
+  <text class="muted" x="60" y="656" font-size="10">No new mechanics. Naming plus merge --no-ff, or short branches on main.</text>
+
+  <g>
+    <rect class="chip stroke" x="60" y="664" width="132" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="shape" x="76" y="680" font-size="9" font-weight="700">22</text>
+    <text class="text" x="76" y="694" font-size="12" font-weight="600">gitflow</text>
+  </g>
+  <line class="edge" x1="192" y1="684" x2="212" y2="684" stroke-width="1.5" marker-end="url(#c-arr)"/>
+  <g>
+    <rect class="chip stroke" x="216" y="664" width="148" height="40" rx="10" fill="none" stroke-width="1"/>
+    <text class="shape" x="232" y="680" font-size="9" font-weight="700">23</text>
+    <text class="text" x="232" y="694" font-size="12" font-weight="600">trunk</text>
+  </g>
+  <text class="muted" x="384" y="688" font-size="10">convention on top of merge -- pick a graph taste, not a new engine</text>
+</svg>

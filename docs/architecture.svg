@@ -1,0 +1,203 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" role="img" aria-labelledby="arch-title arch-desc">
+  <title id="arch-title">Git Lab architecture</title>
+  <desc id="arch-desc">
+    Four surfaces feed one in-memory GitState. The learner types porcelain in xterm;
+    GitVM parses and dispatches; snapshotOf drives the commit graph, overlays, and viz captions.
+    Lesson authors speak() a catalog; fixture authors chain file().stage().commit();
+    diagram authors list scene ops that paint() interprets beside the graph.
+  </desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path class="arr" d="M 0 0 L 10 5 L 0 10 z"/>
+    </marker>
+    <style>
+      .bg { fill: #eff1f5; }
+      .surface { fill: #e6e9ef; }
+      .canvas { fill: #dce0e8; }
+      .text { fill: #4c4f69; }
+      .muted { fill: #6c6f85; }
+      .stroke { stroke: #ccd0da; }
+      .arr { fill: #6c6f85; }
+      .edge { stroke: #6c6f85; }
+      .accent { fill: #1e66f5; }
+      .teal { fill: #179299; }
+      .amber { fill: #df8e1b; }
+      .peach { fill: #fe640b; }
+      .mauve { fill: #8839ef; }
+      .pink { fill: #ea76cb; }
+      .green { fill: #40a02b; }
+      .chip-fill { fill: #eff1f5; }
+      .hub { fill: #e6e9ef; stroke: #1e66f5; }
+      .on-color { fill: #eff1f5; }
+      text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      @media (prefers-color-scheme: dark) {
+        .bg { fill: #1e1e2e; }
+        .surface { fill: #181825; }
+        .canvas { fill: #11111b; }
+        .text { fill: #cdd6f4; }
+        .muted { fill: #a6adc8; }
+        .stroke { stroke: #313244; }
+        .arr { fill: #a6adc8; }
+        .edge { stroke: #a6adc8; }
+        .accent { fill: #89b4fa; }
+        .teal { fill: #94e2d5; }
+        .amber { fill: #f9e2af; }
+        .peach { fill: #fab387; }
+        .mauve { fill: #cba6f7; }
+        .pink { fill: #f5c2e7; }
+        .green { fill: #a6e3a1; }
+        .chip-fill { fill: #1e1e2e; }
+        .hub { fill: #181825; stroke: #89b4fa; }
+        .on-color { fill: #11111b; }
+      }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="960" height="640" rx="16"/>
+
+  <text class="text" x="28" y="36" font-size="20" font-weight="700">Git Lab architecture</text>
+  <text class="muted" x="28" y="56" font-size="12">Four doors. One object store. The graph is the lesson.</text>
+
+  <text class="muted" x="28" y="86" font-size="10" font-weight="700" letter-spacing="1.4">SURFACES</text>
+
+  <g>
+    <rect class="surface stroke" x="24" y="96" width="220" height="88" rx="12" fill="none" stroke-width="1"/>
+    <circle class="accent" cx="48" cy="120" r="10"/>
+    <text class="on-color" x="48" y="124" font-size="11" font-weight="700" text-anchor="middle">1</text>
+    <text class="text" x="66" y="125" font-size="13" font-weight="700">Learner</text>
+    <text class="mono muted" x="36" y="148" font-size="11">GitVM.exec("git ...")</text>
+    <text class="muted" x="36" y="168" font-size="10">xterm  allowedCommands</text>
+  </g>
+  <g>
+    <rect class="surface stroke" x="256" y="96" width="220" height="88" rx="12" fill="none" stroke-width="1"/>
+    <circle class="teal" cx="280" cy="120" r="10"/>
+    <text class="on-color" x="280" y="124" font-size="11" font-weight="700" text-anchor="middle">2</text>
+    <text class="text" x="298" y="125" font-size="13" font-weight="700">Lesson author</text>
+    <text class="mono muted" x="268" y="148" font-size="11">speak().build()</text>
+    <text class="muted" x="268" y="168" font-size="10">lib/curriculum/catalog.ts</text>
+  </g>
+  <g>
+    <rect class="surface stroke" x="488" y="96" width="220" height="88" rx="12" fill="none" stroke-width="1"/>
+    <circle class="amber" cx="512" cy="120" r="10"/>
+    <text class="on-color" x="512" y="124" font-size="11" font-weight="700" text-anchor="middle">3</text>
+    <text class="text" x="530" y="125" font-size="13" font-weight="700">Fixture author</text>
+    <text class="mono muted" x="500" y="148" font-size="11">file().stage().commit()</text>
+    <text class="muted" x="500" y="168" font-size="10">lib/git-vm  tests/vm</text>
+  </g>
+  <g>
+    <rect class="surface stroke" x="720" y="96" width="216" height="88" rx="12" fill="none" stroke-width="1"/>
+    <circle class="pink" cx="744" cy="120" r="10"/>
+    <text class="on-color" x="744" y="124" font-size="11" font-weight="700" text-anchor="middle">4</text>
+    <text class="text" x="762" y="125" font-size="13" font-weight="700">Diagram author</text>
+    <text class="mono muted" x="732" y="148" font-size="11">card  edge  chain</text>
+    <text class="muted" x="732" y="168" font-size="10">scenes.ts -&gt; paint()</text>
+  </g>
+
+  <line class="edge" x1="134" y1="184" x2="134" y2="214" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line class="edge" x1="366" y1="184" x2="300" y2="228" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line class="edge" x1="598" y1="184" x2="598" y2="214" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path class="edge" d="M828 184 V198 H948 V406 H940" fill="none" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <text class="muted" x="140" y="206" font-size="9">line</text>
+  <text class="muted" x="318" y="206" font-size="9">startState  demo  viz</text>
+  <text class="muted" x="604" y="206" font-size="9">seed</text>
+  <text class="muted" x="852" y="290" font-size="9">paint()</text>
+
+  <text class="muted" x="28" y="230" font-size="10" font-weight="700" letter-spacing="1.4">KERNEL</text>
+
+  <g>
+    <rect class="surface stroke" x="24" y="240" width="220" height="72" rx="12" fill="none" stroke-width="1"/>
+    <text class="text" x="40" y="268" font-size="13" font-weight="700">GitVM</text>
+    <text class="mono muted" x="40" y="288" font-size="10">parseArgv -&gt; porcelain</text>
+  </g>
+  <line class="edge" x1="244" y1="276" x2="278" y2="276" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text class="muted" x="248" y="268" font-size="9">mutate</text>
+
+  <g>
+    <rect class="hub" x="284" y="232" width="400" height="88" rx="14" fill="none" stroke-width="2"/>
+    <text class="accent" x="304" y="256" font-size="14" font-weight="700">GitState</text>
+    <text class="muted" x="384" y="256" font-size="10">in-memory object database</text>
+    <rect class="chip-fill stroke" x="304" y="268" width="70" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="teal" x="339" y="282" font-size="9" font-weight="700" text-anchor="middle">objects</text>
+    <rect class="chip-fill stroke" x="380" y="268" width="52" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="amber" x="406" y="282" font-size="9" font-weight="700" text-anchor="middle">refs</text>
+    <rect class="chip-fill stroke" x="438" y="268" width="52" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="accent" x="464" y="282" font-size="9" font-weight="700" text-anchor="middle">HEAD</text>
+    <rect class="chip-fill stroke" x="496" y="268" width="52" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="peach" x="522" y="282" font-size="9" font-weight="700" text-anchor="middle">index</text>
+    <rect class="chip-fill stroke" x="554" y="268" width="64" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="muted" x="586" y="282" font-size="9" font-weight="700" text-anchor="middle">remotes</text>
+    <rect class="chip-fill stroke" x="304" y="292" width="52" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="mauve" x="330" y="306" font-size="9" font-weight="700" text-anchor="middle">stash</text>
+    <rect class="chip-fill stroke" x="362" y="292" width="78" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="green" x="401" y="306" font-size="9" font-weight="700" text-anchor="middle">worktrees</text>
+    <rect class="chip-fill stroke" x="446" y="292" width="52" height="20" rx="10" fill="none" stroke-width="1"/>
+    <text class="muted" x="472" y="306" font-size="9" font-weight="700" text-anchor="middle">reflog</text>
+  </g>
+
+  <line class="edge" x1="684" y1="276" x2="718" y2="276" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text class="muted" x="688" y="268" font-size="9">snapshotOf</text>
+
+  <g>
+    <rect class="surface stroke" x="720" y="240" width="216" height="72" rx="12" fill="none" stroke-width="1"/>
+    <text class="text" x="736" y="268" font-size="13" font-weight="700">Snapshot</text>
+    <text class="muted" x="736" y="288" font-size="10">commits  refs  events</text>
+  </g>
+
+  <text class="muted" x="28" y="350" font-size="10" font-weight="700" letter-spacing="1.4">SIGHT</text>
+
+  <line class="edge" x1="400" y1="320" x2="164" y2="360" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line class="edge" x1="484" y1="320" x2="460" y2="360" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line class="edge" x1="780" y1="312" x2="720" y2="360" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <g>
+    <rect class="surface stroke" x="24" y="360" width="280" height="92" rx="12" fill="none" stroke-width="1"/>
+    <text class="text" x="40" y="384" font-size="13" font-weight="700">Commit graph</text>
+    <text class="muted" x="40" y="404" font-size="11">renderGitGraph(snapshot)</text>
+    <text class="muted" x="40" y="422" font-size="10">interactive SVG  vis-network fallback</text>
+    <text class="muted" x="40" y="438" font-size="10">nodes are objects; labels are refs</text>
+  </g>
+  <g>
+    <rect class="surface stroke" x="320" y="360" width="280" height="92" rx="12" fill="none" stroke-width="1"/>
+    <text class="text" x="336" y="384" font-size="13" font-weight="700">Overlays</text>
+    <text class="muted" x="336" y="404" font-size="11">three trees  index stages</text>
+    <text class="muted" x="336" y="422" font-size="10">pack arrival  stash H/I/W  bare</text>
+    <text class="muted" x="336" y="438" font-size="10">driven by GitEvent, not the DAG</text>
+  </g>
+  <g>
+    <rect class="surface stroke" x="616" y="360" width="320" height="92" rx="12" fill="none" stroke-width="1"/>
+    <text class="text" x="632" y="384" font-size="13" font-weight="700">Illustration + viz beat</text>
+    <text class="muted" x="632" y="404" font-size="11">paint(SCENES[id]) beside the graph</text>
+    <text class="muted" x="632" y="422" font-size="10">caption 1:1 with demoScript[i]</text>
+    <text class="muted" x="632" y="438" font-size="10">highlightRef pulses a label</text>
+  </g>
+
+  <text class="muted" x="28" y="478" font-size="10" font-weight="700" letter-spacing="1.4">SHELL</text>
+  <rect class="canvas stroke" x="24" y="488" width="912" height="128" rx="14" fill="none" stroke-width="1"/>
+
+  <text class="muted" x="44" y="514" font-size="11">Fresh</text>
+  <rect class="surface stroke" x="88" y="498" width="120" height="28" rx="8" fill="none" stroke-width="1"/>
+  <text class="mono text" x="148" y="516" font-size="11" text-anchor="middle">/ catalog</text>
+  <rect class="surface stroke" x="220" y="498" width="200" height="28" rx="8" fill="none" stroke-width="1"/>
+  <text class="mono text" x="320" y="516" font-size="11" text-anchor="middle">/lessons/:slug studio</text>
+  <rect class="surface stroke" x="432" y="498" width="200" height="28" rx="8" fill="none" stroke-width="1"/>
+  <text class="text" x="532" y="516" font-size="11" text-anchor="middle">progress.ts  localStorage</text>
+  <text class="muted" x="660" y="516" font-size="11">goal + quiz unlocks the next node</text>
+
+  <rect class="surface stroke" x="44" y="540" width="200" height="58" rx="8" fill="none" stroke-width="1"/>
+  <text class="muted" x="144" y="564" font-size="10" text-anchor="middle">illustration</text>
+  <text class="muted" x="144" y="580" font-size="9" text-anchor="middle">entity-graph scene</text>
+
+  <rect class="surface stroke" x="256" y="540" width="280" height="58" rx="8" fill="none" stroke-width="1"/>
+  <text class="muted" x="396" y="564" font-size="10" text-anchor="middle">commit graph + overlays</text>
+  <text class="muted" x="396" y="580" font-size="9" text-anchor="middle">the object store, drawn</text>
+
+  <rect class="canvas stroke" x="548" y="540" width="240" height="58" rx="8" fill="none" stroke-width="1"/>
+  <text class="muted" x="668" y="564" font-size="10" text-anchor="middle">xterm.js</text>
+  <text class="mono muted" x="668" y="580" font-size="9" text-anchor="middle">git-lab&gt; _</text>
+
+  <rect class="surface stroke" x="800" y="540" width="116" height="58" rx="8" fill="none" stroke-width="1"/>
+  <text class="muted" x="858" y="564" font-size="10" text-anchor="middle">quiz</text>
+  <text class="muted" x="858" y="580" font-size="9" text-anchor="middle">then unlock</text>
+</svg>
