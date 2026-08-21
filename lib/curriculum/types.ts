@@ -9,6 +9,20 @@ export interface QuizItem {
   explain: string;
 }
 
+/** One visual beat, aligned 1:1 with `lesson.demoScript`. */
+export interface VizBeat {
+  caption: string;
+  /** Pretty ref to dim-the-rest highlight (main, origin/main, stash, feature, …). */
+  highlightRef?: string;
+  /** Pulse the three-trees cards. */
+  pulseTrees?: boolean;
+}
+
+export interface LessonViz {
+  intro: string;
+  beats: VizBeat[];
+}
+
 export interface Lesson {
   id: string;
   order: number;
@@ -25,6 +39,7 @@ export interface Lesson {
   goalHint: string;
   quiz: QuizItem[];
   goalCheck: (snapshot: Snapshot, state: GitState) => boolean;
+  viz: LessonViz;
 }
 
 export const LESSON_ORDER = [

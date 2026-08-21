@@ -1,56 +1,20 @@
 import { cloneJson } from "../git-vm/clone.ts";
 import {
   emptyState,
+  makeCommit,
   originFixture,
   seededLocalFromOrigin,
 } from "../git-vm/fixtures.ts";
-import { hashObject } from "../git-vm/hash.ts";
-import type {
-  CommitObject,
-  GitObject,
-  GitState,
-  IndexEntry,
-  TreeObject,
-} from "../git-vm/types.ts";
+import type { GitObject, GitState, IndexEntry } from "../git-vm/types.ts";
 
-export { cloneJson, emptyState, originFixture, seededLocalFromOrigin };
-
-/** Same hashing as lib/git-vm/fixtures.ts so origin tips stay consistent. */
-export function writeCommit(
-  message: string,
-  parents: string[],
-  files: Record<string, string>,
-): { commit: CommitObject; objects: GitState["objects"] } {
-  const objects: GitState["objects"] = {};
-  const entries = Object.entries(files).map(([name, content]) => {
-    const blobId = hashObject("blob", content);
-    objects[blobId] = { type: "blob", id: blobId, content };
-    return { name, mode: "100644" as const, id: blobId };
-  });
-  entries.sort((a, b) => a.name.localeCompare(b.name));
-  const treeBody = entries.map((e) => `${e.mode} ${e.name} ${e.id}`).join("\n");
-  const treeId = hashObject("tree", treeBody);
-  const tree: TreeObject = { type: "tree", id: treeId, entries };
-  objects[treeId] = tree;
-  const commitBody = [
-    `tree ${treeId}`,
-    ...parents.map((p) => `parent ${p}`),
-    "author learner <learner@git-lab>",
-    "",
-    message,
-  ].join("\n");
-  const id = hashObject("commit", commitBody);
-  const c: CommitObject = {
-    type: "commit",
-    id,
-    tree: treeId,
-    parents,
-    message,
-    author: "learner",
-  };
-  objects[id] = c;
-  return { commit: c, objects };
-}
+export {
+  cloneJson,
+  emptyState,
+  makeCommit,
+  makeCommit as writeCommit,
+  originFixture,
+  seededLocalFromOrigin,
+};
 
 export function checkoutCommit(state: GitState, commitId: string): void {
   const obj = state.objects[commitId];
@@ -85,7 +49,7 @@ export function commitOnBranch(
   const ref = `refs/heads/${branch}`;
   const parent = opts?.from ?? state.refs[ref];
   if (!parent) throw new Error(`commitOnBranch: no parent for ${branch}`);
-  const { commit, objects } = writeCommit(message, [parent], files);
+  const { commit, objects } = makeCommit(message, [parent], files);
   Object.assign(state.objects, objects);
   const oldId = state.refs[ref] ?? null;
   state.refs[ref] = commit.id;
@@ -113,7 +77,7 @@ export function commitOnRemote(
   if (!remote) throw new Error(`commitOnRemote: no remote ${remoteName}`);
   const parent = remote.refs["refs/heads/main"];
   if (!parent) throw new Error(`commitOnRemote: ${remoteName} has no main`);
-  const { commit, objects } = writeCommit(message, [parent], files);
+  const { commit, objects } = makeCommit(message, [parent], files);
   Object.assign(remote.objects, objects);
   remote.refs["refs/heads/main"] = commit.id;
   return commit.id;
